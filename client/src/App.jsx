@@ -87,10 +87,12 @@ function canAccess(role, path) {
 /** Full-page loading spinner shown while AuthContext is restoring session. */
 function AuthLoadingScreen() {
   return (
-    <div className="min-h-screen bg-[#140d08] flex items-center justify-center">
+    <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center" style={{
+      background: "linear-gradient(135deg, #fdfbf7 0%, #f6eee4 50%, #ede1d2 100%)",
+    }}>
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-[#c68642] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-[#d4cfc5] text-xs font-medium tracking-wide">Connecting to Green H₂ Control Room…</p>
+        <div className="w-12 h-12 border-4 border-[#8b5230] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[#2c170b] text-xs font-semibold tracking-wide">Connecting to Green H₂ Control Room…</p>
       </div>
     </div>
   );
