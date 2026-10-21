@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* ─── CSS Custom Properties — Coffee Professional Theme ─── */
+:root {
+  /* Coffee palette */
+  --coffee-50:  #fdf8f3;
+  --coffee-100: #f5e9d8;
+  --coffee-200: #eacfb0;
+  --coffee-300: #d9ae82;
+  --coffee-400: #c4874e;
+  --coffee-500: #a8693a;
+  --coffee-600: #8b5230;
+  --coffee-700: #6e3e25;
+  --coffee-800: #522e1b;
+  --coffee-900: #3a1f0f;
+
+  /* Warm neutrals */
+  --warm-50:  #fafaf8;
+  --warm-100: #f4f3ef;
+  --warm-200: #e8e5de;
+  --warm-300: #d4cfc5;
+  --warm-400: #b0a898;
+  --warm-500: #8a8070;
+  --warm-600: #655e50;
+  --warm-700: #4a4438;
+  --warm-800: #322d24;
+  --warm-900: #1e1a14;
+
+  /* Accent — amber/gold for highlights */
+  --accent-400: #f59e0b;
+  --accent-500: #d97706;
+  --accent-600: #b45309;
+
+  --bg-page:    var(--warm-100);
+  --bg-card:    #ffffff;
+  --border:     var(--warm-200);
+  --text-primary:   var(--warm-900);
+  --text-secondary: var(--warm-600);
+  --text-muted:     var(--warm-400);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Scrollbar styling ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--warm-100); }
+::-webkit-scrollbar-thumb { background: var(--coffee-300); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--coffee-400); }
+
+/* ─── Utility classes for coffee theme ─── */
+.coffee-gradient {
+  background: linear-gradient(135deg, var(--coffee-700) 0%, var(--coffee-500) 50%, var(--accent-500) 100%);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(58, 31, 15, 0.06);
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px 0 rgba(58, 31, 15, 0.10);
+}
+
+/* ─── Animated gradient background for login ─── */
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.login-bg {
+  background: linear-gradient(135deg, #1e1a14 0%, #3a1f0f 35%, #522e1b 65%, #2d1a0a 100%);
+  background-size: 300% 300%;
+  animation: gradient-shift 12s ease infinite;
+}
+
+/* ─── Status dot pulse ─── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(1.3); }
+}
+
+.status-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ─── Bar chart hover transition ─── */
+.bar-segment {
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+.bar-segment:hover {
+  filter: brightness(1.15);
+}
+
+/* ─── Smooth page transitions ─── */
+.page-enter {
+  animation: page-in 0.25s ease forwards;
+}
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
