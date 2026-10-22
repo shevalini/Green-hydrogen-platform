@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import {
   ShieldCheck,
   UserPlus,
@@ -8,28 +8,26 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
-  ListFilter,
   History,
-  Activity,
   X,
 } from "lucide-react";
 import api from "../api/axios";
-import { AuthContext } from "../context/AuthContext.jsx";
+import { AuthContext } from "../context/authContext.js";
 import { Navigate } from "react-router-dom";
 
 const ROLE_BADGE = {
-  ADMIN:    "bg-[#8c5832]/20 text-[#8c5832] border border-[#8c5832]/40",
+  ADMIN:    "bg-[#aa6e40]/20 text-[#aa6e40] border border-[#aa6e40]/40",
   OPERATOR: "bg-[#c68642]/20 text-[#a8693a] border border-[#c68642]/40",
   VIEWER:   "bg-[#8a8070]/20 text-[#655e50] border border-[#8a8070]/40",
 };
 
 const ACTION_BADGE = {
   USER_LOGIN:           "bg-[#10b981]/15 text-[#059669] border-[#10b981]/30",
-  OPTIMIZATION_RUN:     "bg-[#c68642]/15 text-[#8c5832] border-[#c68642]/30",
-  USER_CREATED:         "bg-[#8c5832]/15 text-[#7a4d2c] border-[#8c5832]/30",
+  OPTIMIZATION_RUN:     "bg-[#c68642]/15 text-[#aa6e40] border-[#c68642]/30",
+  USER_CREATED:         "bg-[#aa6e40]/15 text-[#8b4e23] border-[#aa6e40]/30",
   USER_ROLE_UPDATED:    "bg-amber-100 text-amber-800 border-amber-300",
   USER_STATUS_UPDATED:  "bg-blue-100 text-blue-800 border-blue-300",
-  TELEMETRY_REFRESH:    "bg-[#8a8070]/15 text-[#5c3a21] border-[#8a8070]/30",
+  TELEMETRY_REFRESH:    "bg-[#8a8070]/15 text-[#635548] border-[#8a8070]/30",
 };
 
 function StatusBadge({ active }) {
@@ -67,14 +65,14 @@ function CreateUserModal({ onClose, onCreated }) {
   };
 
   const inputCls =
-    "w-full border border-[#d4cfc5] rounded-xl px-4 py-2.5 text-xs text-[#21150c] focus:outline-none focus:border-[#8c5832] transition bg-white";
+    "w-full border border-[#e8dfd5] rounded-xl px-4 py-2.5 text-xs text-[#2d241d] focus:outline-none focus:border-[#aa6e40] transition bg-white";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-[#e8dcce] overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#f4ece1] bg-[#faf6f0]">
-          <h3 className="text-sm font-bold text-[#21150c]">Provision New User Account</h3>
-          <button onClick={onClose} className="text-[#8a8070] hover:text-[#21150c] transition cursor-pointer">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-[#e8dfd5] overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#f6f0e8] bg-[#fbf8f4]">
+          <h3 className="text-sm font-bold text-[#2d241d]">Provision New User Account</h3>
+          <button onClick={onClose} className="text-[#8a8070] hover:text-[#2d241d] transition cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -86,7 +84,7 @@ function CreateUserModal({ onClose, onCreated }) {
             </div>
           )}
           <div>
-            <label className="block text-xs font-bold text-[#7a6a58] mb-1">Full Name</label>
+            <label className="block text-xs font-bold text-[#7a6c5f] mb-1">Full Name</label>
             <input
               required
               className={inputCls}
@@ -96,7 +94,7 @@ function CreateUserModal({ onClose, onCreated }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[#7a6a58] mb-1">Account Email</label>
+            <label className="block text-xs font-bold text-[#7a6c5f] mb-1">Account Email</label>
             <input
               required
               type="email"
@@ -107,7 +105,7 @@ function CreateUserModal({ onClose, onCreated }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[#7a6a58] mb-1">Temporary Password</label>
+            <label className="block text-xs font-bold text-[#7a6c5f] mb-1">Temporary Password</label>
             <input
               required
               minLength={4}
@@ -119,7 +117,7 @@ function CreateUserModal({ onClose, onCreated }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[#7a6a58] mb-1">System Role</label>
+            <label className="block text-xs font-bold text-[#7a6c5f] mb-1">System Role</label>
             <select
               className={inputCls}
               value={form.role}
@@ -136,9 +134,9 @@ function CreateUserModal({ onClose, onCreated }) {
               id="isActive"
               checked={form.isActive}
               onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.checked }))}
-              className="accent-[#8c5832]"
+              className="accent-[#aa6e40]"
             />
-            <label htmlFor="isActive" className="text-xs font-medium text-[#5c3a21]">
+            <label htmlFor="isActive" className="text-xs font-medium text-[#635548]">
               Immediate Activation
             </label>
           </div>
@@ -146,7 +144,7 @@ function CreateUserModal({ onClose, onCreated }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-[#d4cfc5] text-xs font-bold text-[#7a6a58] hover:bg-[#faf6f0] transition cursor-pointer"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-[#e8dfd5] text-xs font-bold text-[#7a6c5f] hover:bg-[#fbf8f4] transition cursor-pointer"
             >
               Cancel
             </button>
@@ -155,7 +153,7 @@ function CreateUserModal({ onClose, onCreated }) {
               type="submit"
               disabled={loading}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-xs font-bold transition shadow-md cursor-pointer hover:brightness-110 disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #c68642, #8c5832)" }}
+              style={{ background: "linear-gradient(135deg, #c68642, #aa6e40)" }}
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
               {loading ? "Creating…" : "Save User"}
@@ -178,11 +176,7 @@ export default function AdminPage({ userRole }) {
   const [showCreate, setShowCreate] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
 
-  if (userRole && userRole !== "ADMIN") {
-    return <Navigate to="/" replace />;
-  }
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -195,9 +189,9 @@ export default function AdminPage({ userRole }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     setAuditLoading(true);
     try {
       const res = await api.get("/api/admin/audit-logs");
@@ -207,12 +201,23 @@ export default function AdminPage({ userRole }) {
     } finally {
       setAuditLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchUsers();
-    fetchAuditLogs();
-  }, []);
+    let isCurrent = true;
+    Promise.resolve().then(() => {
+      if (!isCurrent) return;
+      fetchUsers();
+      fetchAuditLogs();
+    });
+    return () => {
+      isCurrent = false;
+    };
+  }, [fetchUsers, fetchAuditLogs]);
+
+  if (userRole && userRole !== "ADMIN") {
+    return <Navigate to="/" replace />;
+  }
 
   const handleToggleActive = async (u) => {
     setUpdatingId(u._id);
@@ -262,23 +267,23 @@ export default function AdminPage({ userRole }) {
         <div className="flex items-center gap-3.5">
           <div
             className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md"
-            style={{ background: "linear-gradient(135deg, #8c5832, #c68642)" }}
+            style={{ background: "linear-gradient(135deg, #aa6e40, #c68642)" }}
           >
             <ShieldCheck size={22} />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold text-[#21150c]">Personnel & Security Administration</h1>
-            <p className="text-xs text-[#7a6a58] font-medium">Role access, account provisioning & audit trail</p>
+            <h1 className="text-xl font-extrabold text-[#2d241d]">Personnel & Security Administration</h1>
+            <p className="text-xs text-[#7a6c5f] font-medium">Role access, account provisioning & audit trail</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5">
           {/* Tab Selector */}
-          <div className="flex items-center gap-1 bg-[#faf6f0] p-1 rounded-2xl border border-[#e8dcce]">
+          <div className="flex items-center gap-1 bg-[#fbf8f4] p-1 rounded-2xl border border-[#e8dfd5]">
             <button
               onClick={() => setActiveTab("users")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                activeTab === "users" ? "bg-[#8c5832] text-white shadow-xs" : "text-[#7a6a58] hover:text-[#21150c]"
+                activeTab === "users" ? "bg-[#aa6e40] text-white shadow-xs" : "text-[#7a6c5f] hover:text-[#2d241d]"
               }`}
             >
               <Users size={13} />
@@ -290,7 +295,7 @@ export default function AdminPage({ userRole }) {
                 fetchAuditLogs();
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                activeTab === "audit" ? "bg-[#8c5832] text-white shadow-xs" : "text-[#7a6a58] hover:text-[#21150c]"
+                activeTab === "audit" ? "bg-[#aa6e40] text-white shadow-xs" : "text-[#7a6c5f] hover:text-[#2d241d]"
               }`}
             >
               <History size={13} />
@@ -304,7 +309,7 @@ export default function AdminPage({ userRole }) {
               fetchAuditLogs();
             }}
             disabled={loading || auditLoading}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#d4cfc5] bg-white text-xs font-bold text-[#5c3a21] hover:bg-[#faf6f0] transition cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#e8dfd5] bg-white text-xs font-bold text-[#635548] hover:bg-[#fbf8f4] transition cursor-pointer disabled:opacity-50"
           >
             <RefreshCw size={14} className={loading || auditLoading ? "animate-spin text-[#c68642]" : ""} />
             <span>Sync</span>
@@ -315,7 +320,7 @@ export default function AdminPage({ userRole }) {
               id="create-user-btn"
               onClick={() => setShowCreate(true)}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-md cursor-pointer hover:brightness-110"
-              style={{ background: "linear-gradient(135deg, #c68642, #8c5832)" }}
+              style={{ background: "linear-gradient(135deg, #c68642, #aa6e40)" }}
             >
               <UserPlus size={14} />
               <span>Provision User</span>
@@ -327,13 +332,13 @@ export default function AdminPage({ userRole }) {
       {/* Stats cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Total Accounts", value: users.length || 3, color: "text-[#21150c]" },
+          { label: "Total Accounts", value: users.length || 3, color: "text-[#2d241d]" },
           { label: "Active Status", value: users.filter((u) => u.isActive).length || 3, color: "text-[#10b981]" },
-          { label: "Admin Tier", value: users.filter((u) => u.role === "ADMIN").length || 1, color: "text-[#8c5832]" },
+          { label: "Admin Tier", value: users.filter((u) => u.role === "ADMIN").length || 1, color: "text-[#aa6e40]" },
           { label: "Audit Events", value: auditLogs.length || 3, color: "text-[#c68642]" },
         ].map((s) => (
-          <div key={s.label} className="bg-white border border-[#e8dcce] rounded-3xl p-4 shadow-sm">
-            <p className="text-xs text-[#7a6a58] font-bold">{s.label}</p>
+          <div key={s.label} className="bg-white border border-[#e8dfd5] rounded-3xl p-4 shadow-sm">
+            <p className="text-xs text-[#7a6c5f] font-bold">{s.label}</p>
             <p className={`text-2xl font-extrabold mt-1 ${s.color}`}>{s.value}</p>
           </div>
         ))}
@@ -341,11 +346,11 @@ export default function AdminPage({ userRole }) {
 
       {/* TAB 1: USERS DIRECTORY */}
       {activeTab === "users" && (
-        <div className="bg-white border border-[#e8dcce] rounded-3xl overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-[#f4ece1] bg-[#faf6f0] flex items-center justify-between">
+        <div className="bg-white border border-[#e8dfd5] rounded-3xl overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-[#f6f0e8] bg-[#fbf8f4] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Users size={16} className="text-[#8c5832]" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-[#21150c]">
+              <Users size={16} className="text-[#aa6e40]" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#2d241d]">
                 Authorized Plant Personnel ({users.length})
               </h2>
             </div>
@@ -358,11 +363,11 @@ export default function AdminPage({ userRole }) {
           )}
 
           {error && !loading && (
-            <div className="flex items-start gap-3 p-6 text-amber-800 bg-[#faf6f0]">
+            <div className="flex items-start gap-3 p-6 text-amber-800 bg-[#fbf8f4]">
               <AlertCircle size={18} className="shrink-0 mt-0.5 text-[#c68642]" />
               <div>
-                <p className="font-bold text-xs text-[#21150c]">Database Telemetry Mode Active</p>
-                <p className="text-xs text-[#7a6a58] mt-0.5 leading-relaxed">
+                <p className="font-bold text-xs text-[#2d241d]">Database Telemetry Mode Active</p>
+                <p className="text-xs text-[#7a6c5f] mt-0.5 leading-relaxed">
                   MongoDB persistence is currently in demo/offline mode. User authorization is managed through secured
                   in-process tokens and environment variables.
                 </p>
@@ -373,25 +378,25 @@ export default function AdminPage({ userRole }) {
           {!loading && users.length > 0 && (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
-                <thead className="bg-[#faf6f0] border-b border-[#e8dcce]">
+                <thead className="bg-[#fbf8f4] border-b border-[#e8dfd5]">
                   <tr>
                     {["Name", "Email", "Role", "Status", "Created", "Actions"].map((h) => (
-                      <th key={h} className="text-left px-6 py-3 font-bold text-[#5c3a21] uppercase tracking-wider">
+                      <th key={h} className="text-left px-6 py-3 font-bold text-[#635548] uppercase tracking-wider">
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#f4ece1]">
+                <tbody className="divide-y divide-[#f6f0e8]">
                   {users.map((u) => (
-                    <tr key={u._id} className="hover:bg-[#faf6f0] transition">
-                      <td className="px-6 py-4 font-bold text-[#21150c]">
+                    <tr key={u._id} className="hover:bg-[#fbf8f4] transition">
+                      <td className="px-6 py-4 font-bold text-[#2d241d]">
                         {u.name}
                         {u._id === currentUser?.id && (
-                          <span className="ml-2 text-[10px] text-[#8c5832] font-bold">(you)</span>
+                          <span className="ml-2 text-[10px] text-[#aa6e40] font-bold">(you)</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-[#7a6a58] truncate max-w-[180px]">{u.email}</td>
+                      <td className="px-6 py-4 text-[#7a6c5f] truncate max-w-[180px]">{u.email}</td>
                       <td className="px-6 py-4">
                         {u._id === currentUser?.id ? (
                           <span
@@ -450,11 +455,11 @@ export default function AdminPage({ userRole }) {
 
       {/* TAB 2: AUDIT LOGS */}
       {activeTab === "audit" && (
-        <div className="bg-white border border-[#e8dcce] rounded-3xl overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-[#f4ece1] bg-[#faf6f0] flex items-center justify-between">
+        <div className="bg-white border border-[#e8dfd5] rounded-3xl overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-[#f6f0e8] bg-[#fbf8f4] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <History size={16} className="text-[#8c5832]" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-[#21150c]">
+              <History size={16} className="text-[#aa6e40]" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#2d241d]">
                 Plant Operations Audit Trail ({auditLogs.length})
               </h2>
             </div>
@@ -463,32 +468,32 @@ export default function AdminPage({ userRole }) {
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="bg-[#faf6f0] border-b border-[#e8dcce]">
+              <thead className="bg-[#fbf8f4] border-b border-[#e8dfd5]">
                 <tr>
                   {["Action", "Operator / User", "Role", "Activity Description", "Time"].map((h) => (
-                    <th key={h} className="text-left px-6 py-3 font-bold text-[#5c3a21] uppercase tracking-wider">
+                    <th key={h} className="text-left px-6 py-3 font-bold text-[#635548] uppercase tracking-wider">
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#f4ece1]">
+              <tbody className="divide-y divide-[#f6f0e8]">
                 {auditLogs.map((log) => {
-                  const badgeCls = ACTION_BADGE[log.action] || "bg-[#faf6f0] text-[#5c3a21] border-[#e8dcce]";
+                  const badgeCls = ACTION_BADGE[log.action] || "bg-[#fbf8f4] text-[#635548] border-[#e8dfd5]";
                   return (
-                    <tr key={log._id} className="hover:bg-[#faf6f0] transition">
+                    <tr key={log._id} className="hover:bg-[#fbf8f4] transition">
                       <td className="px-6 py-3.5">
                         <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${badgeCls}`}>
                           {log.action.replace(/_/g, " ")}
                         </span>
                       </td>
-                      <td className="px-6 py-3.5 font-bold text-[#21150c]">{log.userEmail}</td>
+                      <td className="px-6 py-3.5 font-bold text-[#2d241d]">{log.userEmail}</td>
                       <td className="px-6 py-3.5">
                         <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${ROLE_BADGE[log.userRole]}`}>
                           {log.userRole}
                         </span>
                       </td>
-                      <td className="px-6 py-3.5 text-[#5c3a21] max-w-md">{log.details}</td>
+                      <td className="px-6 py-3.5 text-[#635548] max-w-md">{log.details}</td>
                       <td className="px-6 py-3.5 text-[#8a8070] text-[11px] font-mono whitespace-nowrap">
                         {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </td>
@@ -502,8 +507,8 @@ export default function AdminPage({ userRole }) {
       )}
 
       {/* Info notice */}
-      <div className="flex items-start gap-3 p-4 bg-[#c68642]/10 border border-[#c68642]/25 rounded-2xl text-xs text-[#8c5832]">
-        <AlertCircle size={16} className="shrink-0 mt-0.5 text-[#8c5832]" />
+      <div className="flex items-start gap-3 p-4 bg-[#c68642]/10 border border-[#c68642]/25 rounded-2xl text-xs text-[#aa6e40]">
+        <AlertCircle size={16} className="shrink-0 mt-0.5 text-[#aa6e40]" />
         <p className="leading-relaxed">
           Platform role-based access control enforces three tiers: <strong>ADMIN</strong> (full dispatch & configuration),{" "}
           <strong>OPERATOR</strong> (scenario execution & telemetry control), and <strong>VIEWER</strong> (read-only

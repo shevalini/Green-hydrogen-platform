@@ -1,45 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
-/* ─── CSS Custom Properties — Enhanced Light Coffee Professional Theme ─── */
+/* ─── CSS Custom Properties — Refined Low-Darkness Warm Palette ─── */
 :root {
-  /* Light Coffee / Cream & Latte palette */
+  /* Softened Coffee / Cream & Latte palette — Low Darkness */
   --coffee-25:  #fdfcf9;
-  --coffee-50:  #fbf8f4;
-  --coffee-100: #f5ede3;
-  --coffee-200: #e9dcce;
-  --coffee-300: #d8c6b3;
-  --coffee-400: #c4874e;
-  --coffee-500: #a8693a;
-  --coffee-600: #8b5230;
-  --coffee-700: #6e3e25;
-  --coffee-800: #4a2815;
-  --coffee-900: #2c170b;
+  --coffee-50:  #faf7f2;
+  --coffee-100: #f5eee4;
+  --coffee-200: #eadecf;
+  --coffee-300: #dccdbc;
+  --coffee-400: #c68953;
+  --coffee-500: #aa6e40;
+  --coffee-600: #935a32;
+  --coffee-700: #7b4928;
+  --coffee-800: #5c3820;
+  --coffee-900: #2d241d;
 
-  /* Warm neutrals & latte layers */
-  --warm-50:  #faf8f5;
-  --warm-100: #f4ede4;
-  --warm-200: #e7ddd1;
-  --warm-300: #d6c8b9;
-  --warm-400: #af9f8f;
-  --warm-500: #877768;
-  --warm-600: #625345;
-  --warm-700: #46392d;
-  --warm-800: #2d231a;
-  --warm-900: #1b140d;
+  /* Refined warm neutrals with reduced darkness */
+  --warm-50:  #fcfbfa;
+  --warm-100: #f6f2ec;
+  --warm-200: #ebe4da;
+  --warm-300: #dbd1c3;
+  --warm-400: #b5a797;
+  --warm-500: #8c7e6f;
+  --warm-600: #685a4d;
+  --warm-700: #4c4035;
+  --warm-800: #382e26;
+  --warm-900: #241d17;
 
   /* Accent highlights — rich honey amber / roasted caramel */
   --accent-400: #f59e0b;
   --accent-500: #d97706;
   --accent-600: #b45309;
 
-  --bg-page:        #f8f4ee;
+  --bg-page:        #fbf9f6;
   --bg-card:        #ffffff;
-  --border:         #e7ddd1;
-  --border-light:   #f0e8de;
-  --text-primary:   #2c170b;
-  --text-secondary: #625345;
-  --text-muted:     #877768;
+  --border:         #e8dfd5;
+  --border-light:   #f2ebe2;
+  --text-primary:   #2d241d;
+  --text-secondary: #635548;
+  --text-muted:     #8c7e6f;
 }
 
 * {
@@ -66,12 +66,12 @@ body {
 }
 
 .coffee-gradient-btn {
-  background: linear-gradient(135deg, #8b5230 0%, #a8693a 50%, #c4874e 100%);
+  background: linear-gradient(135deg, #aa6e40 0%, #c68953 50%, #d97706 100%);
   transition: all 0.2s ease;
 }
 .coffee-gradient-btn:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 8px 25px rgba(139, 82, 48, 0.28);
+  filter: brightness(1.06);
+  box-shadow: 0 6px 20px rgba(170, 110, 64, 0.22);
 }
 
 .card {
@@ -82,10 +82,10 @@ body {
 }
 
 .card:hover {
-  box-shadow: 0 6px 20px 0 rgba(70, 40, 20, 0.08);
+  box-shadow: 0 6px 20px 0 rgba(70, 40, 20, 0.06);
 }
 
-/* ─── Animated Light Coffee gradient background for login ─── */
+/* ─── Animated Soft gradient background for login ─── */
 @keyframes gradient-shift {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
@@ -93,7 +93,7 @@ body {
 }
 
 .login-bg {
-  background: linear-gradient(135deg, #fdfbf7 0%, #f6eee4 25%, #ece0d1 50%, #f4eae0 75%, #faf6f0 100%);
+  background: linear-gradient(135deg, #fdfcfb 0%, #f7f3ee 25%, #eee6db 50%, #f5eee4 75%, #fbf9f6 100%);
   background-size: 300% 300%;
   animation: gradient-shift 16s ease infinite;
 }

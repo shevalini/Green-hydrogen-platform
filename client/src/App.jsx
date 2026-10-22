@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useContext } from "react";
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate, Link } from "react-router-dom";
+import { ShieldAlert } from "lucide-react";
 import api from "./api/axios";
 
 import Sidebar from "./components/Sidebar";
@@ -14,7 +15,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import LoginPage from "./pages/LoginPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import PlantDataInputPage from "./pages/PlantDataInputPage.jsx";
-import { AuthContext } from "./context/AuthContext.jsx";
+import { AuthContext } from "./context/authContext.js";
 
 const SCENARIO_PRESETS = {
   standard: { name: "Standard 24h Operational Profile", payload: {} },
@@ -87,19 +88,41 @@ function canAccess(role, path) {
 /** Full-page loading spinner shown while AuthContext is restoring session. */
 function AuthLoadingScreen() {
   return (
-    <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center" style={{
-      background: "linear-gradient(135deg, #fdfbf7 0%, #f6eee4 50%, #ede1d2 100%)",
+    <div className="min-h-screen bg-[#fdfcfb] flex items-center justify-center" style={{
+      background: "linear-gradient(135deg, #fdfcfb 0%, #f7f3ee 50%, #eee6db 100%)",
     }}>
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-[#8b5230] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-[#2c170b] text-xs font-semibold tracking-wide">Connecting to Green H₂ Control Room…</p>
+        <div className="w-12 h-12 border-4 border-[#aa6e40] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[#2d241d] text-xs font-semibold tracking-wide">Connecting to Green H₂ Control Room…</p>
       </div>
     </div>
   );
 }
 
 /** Redirects unauthenticated users to /login; enforces role-based route access. */
-function PrivateRoute({ children, allowedRoles }) {
+function AuthorizationRestricted() {
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <section className="bg-white border border-red-200 rounded-2xl p-8 text-center shadow-sm">
+        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-red-50 text-red-700 flex items-center justify-center">
+          <ShieldAlert size={28} />
+        </div>
+        <h2 className="text-xl font-extrabold text-red-800">403 Authorization Restricted</h2>
+        <p className="text-sm text-[#635548] mt-2">
+          Your VIEWER role is read-only and cannot access plant data editing forms.
+        </p>
+        <Link
+          to="/"
+          className="inline-flex mt-5 px-4 py-2 rounded-xl bg-[#fbf8f4] border border-[#e8dfd5] text-xs font-bold text-[#635548] hover:bg-[#f6f0e8] transition"
+        >
+          Return to Dashboard
+        </Link>
+      </section>
+    </div>
+  );
+}
+
+function PrivateRoute({ children, allowedRoles, showAuthorizationRestricted = false }) {
   const { user, loading } = useContext(AuthContext);
   const location = useLocation();
 
@@ -112,6 +135,9 @@ function PrivateRoute({ children, allowedRoles }) {
     : canAccess(role, location.pathname);
 
   if (!isAllowed) {
+    if (showAuthorizationRestricted && role === "VIEWER") {
+      return <AuthorizationRestricted />;
+    }
     return <Navigate to="/" replace />;
   }
   return children;
@@ -127,7 +153,7 @@ function AppShell({ children, metaInfo, onRefresh, isRefreshing }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f2eb] text-[#21150c] flex">
+    <div className="min-h-screen bg-[#fbf9f6] text-[#2d241d] flex">
       <Sidebar metaInfo={metaInfo} userRole={user?.role} />
       <div className="flex-1 min-w-0 flex flex-col">
         <Header
@@ -231,12 +257,19 @@ function App() {
 
   // Fetch data once user is authenticated
   useEffect(() => {
-    if (user && !authLoading) {
+    if (!user || authLoading) return undefined;
+
+    let isCurrent = true;
+    Promise.resolve().then(() => {
+      if (!isCurrent) return;
       fetchDashboardData();
       if (user.role !== 'VIEWER') {
         triggerOptimization("standard");
       }
-    }
+    });
+    return () => {
+      isCurrent = false;
+    };
   }, [user, authLoading, fetchDashboardData, triggerOptimization]);
 
   const handleManualRefresh = () => {
@@ -274,7 +307,7 @@ function App() {
         err.message ||
         "Failed to execute optimization.";
       setOptError(errorMsg);
-      throw new Error(errorMsg);
+      throw new Error(errorMsg, { cause: err });
     } finally {
       setOptLoading(false);
     }
@@ -292,7 +325,7 @@ function App() {
           />
         } />
         <Route path="/plant-data" element={
-          <PrivateRoute allowedRoles={["ADMIN", "OPERATOR"]}>
+          <PrivateRoute allowedRoles={["ADMIN", "OPERATOR"]} showAuthorizationRestricted>
             <PlantDataInputPage
               metaInfo={metaInfo}
               userRole={user?.role}

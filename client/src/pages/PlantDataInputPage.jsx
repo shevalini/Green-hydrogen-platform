@@ -8,9 +8,7 @@ import {
   CheckCircle2,
   RefreshCw,
   Zap,
-  Layers,
   ArrowRight,
-  Database,
   FileSpreadsheet,
   Activity,
   AlertTriangle,
@@ -68,6 +66,8 @@ export default function PlantDataInputPage({
   const [activeTab, setActiveTab] = useState("table"); // "table" | "results"
   // Incremented on every Fill so React remounts demand inputs and syncs DOM
   const [fillKey, setFillKey] = useState(0);
+  // Modal state for confirming 24h demand fill
+  const [showFillConfirmModal, setShowFillConfirmModal] = useState(false);
 
   const isViewer = userRole === "VIEWER";
 
@@ -228,20 +228,30 @@ export default function PlantDataInputPage({
     reader.readAsText(file);
   };
 
-  // Quick helper to populate uniform demand across all 24 hours
-  const handleApplyUniformDemand = () => {
+  // Prompt confirmation dialog before applying uniform demand across 24h
+  const handleRequestFill = () => {
+    if (isViewer) {
+      setValidationErrors(["Viewer role is read-only. Cannot modify plant demand schedule."]);
+      return;
+    }
     const val = parseFloat(String(constantDemandInput));
     if (isNaN(val) || val < 0) {
       setValidationErrors(["Please specify a non-negative constant demand value in kg/h."]);
       return;
     }
-    // Spread into a fresh array so React always detects the state change
+    setValidationErrors([]);
+    setShowFillConfirmModal(true);
+  };
+
+  // Only executed after user confirms "Yes, Proceed & Apply" in modal
+  const handleConfirmUniformDemand = () => {
+    const val = parseFloat(String(constantDemandInput));
     const filled = [...Array(24).fill(val)];
     setDemandForecast(filled);
-    // Bump fillKey so demand input elements are remounted — forces DOM sync
     setFillKey((k) => k + 1);
+    setShowFillConfirmModal(false);
     setValidationErrors([]);
-    setSaveSuccessMsg(`✓ All 24 demand slots set to ${val} kg/h (${val * 24} kg/day total).`);
+    setSaveSuccessMsg(`✓ Successfully applied ${val} kg/h across all 24 demand hours (${val * 24} kg/day total).`);
   };
 
   // Quick helper to scale diurnal profile based on ratings
@@ -394,13 +404,13 @@ export default function PlantDataInputPage({
   return (
     <div className="p-6 max-w-[1600px] mx-auto space-y-6">
       {/* Top Banner */}
-      <div className="bg-white border border-[#e8dcce] shadow-sm rounded-3xl p-6 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+      <div className="bg-white border border-[#e8dfd5] shadow-sm rounded-3xl p-6 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#c68642]/15 text-[#8c5832] border border-[#c68642]/30 uppercase tracking-wide">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#c68642]/15 text-[#aa6e40] border border-[#c68642]/30 uppercase tracking-wide">
               Plant Telemetry & Ingestion
             </span>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#8c5832]/10 text-[#7a4d2c] border border-[#8c5832]/25">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#aa6e40]/10 text-[#8b4e23] border border-[#aa6e40]/25">
               Role: {userRole || "OPERATOR"}
             </span>
             <span
@@ -413,10 +423,10 @@ export default function PlantDataInputPage({
               DB: {metaInfo?.dbStatus === "connected" ? "Persistent MongoDB" : "Demo Engine Mode (Volatile)"}
             </span>
           </div>
-          <h2 className="text-2xl font-extrabold text-[#21150c] mt-2">
+          <h2 className="text-2xl font-extrabold text-[#2d241d] mt-2">
             Plant Operational Data Input & Forecast Ingestion
           </h2>
-          <p className="text-xs text-[#7a6a58] mt-1 font-medium leading-relaxed max-w-3xl">
+          <p className="text-xs text-[#7a6c5f] mt-1 font-medium leading-relaxed max-w-3xl">
             Configure physical plant equipment ratings, instantaneous renewable capacity, and 24-hour diurnal forecasts.
             Validated data directly feeds the 24-Hour Linear Programming (LP) optimization engine.
           </p>
@@ -426,18 +436,18 @@ export default function PlantDataInputPage({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleDownloadCsvTemplate}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#faf6f0] border border-[#d4cfc5] hover:bg-[#f4ece1] text-[#5c3a21] text-xs font-semibold transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#fbf8f4] border border-[#e8dfd5] hover:bg-[#f6f0e8] text-[#635548] text-xs font-semibold transition cursor-pointer"
             title="Download formatted CSV template for 24-hour forecast"
           >
-            <Download size={14} className="text-[#8c5832]" />
+            <Download size={14} className="text-[#aa6e40]" />
             <span>Download CSV Template</span>
           </button>
 
           <button
             onClick={handleResetDefaults}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#d4cfc5] hover:bg-[#faf6f0] text-[#5c3a21] text-xs font-semibold transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#e8dfd5] hover:bg-[#fbf8f4] text-[#635548] text-xs font-semibold transition cursor-pointer"
           >
-            <RotateCcw size={14} className="text-[#8c5832]" />
+            <RotateCcw size={14} className="text-[#aa6e40]" />
             <span>Reset Defaults</span>
           </button>
         </div>
@@ -482,8 +492,8 @@ export default function PlantDataInputPage({
       {/* CSV Status Message */}
       {csvStatusMsg && (
         <div className="p-3.5 bg-[#c68642]/10 border border-[#c68642]/30 rounded-2xl flex items-center gap-2.5">
-          <FileSpreadsheet className="text-[#8c5832] shrink-0" size={18} />
-          <p className="text-xs font-medium text-[#5c3a21]">{csvStatusMsg}</p>
+          <FileSpreadsheet className="text-[#aa6e40] shrink-0" size={18} />
+          <p className="text-xs font-medium text-[#635548]">{csvStatusMsg}</p>
         </div>
       )}
 
@@ -491,13 +501,13 @@ export default function PlantDataInputPage({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* LEFT COLUMN: Physical Plant Parameters Form (5 Cols) */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white border border-[#e8dcce] shadow-sm rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#e8dcce] pb-3">
+          <div className="bg-white border border-[#e8dfd5] shadow-sm rounded-3xl p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-[#e8dfd5] pb-3">
               <div className="flex items-center gap-2">
-                <Sliders size={18} className="text-[#8c5832]" />
-                <h3 className="font-extrabold text-base text-[#21150c]">Plant Equipment Specifications</h3>
+                <Sliders size={18} className="text-[#aa6e40]" />
+                <h3 className="font-extrabold text-base text-[#2d241d]">Plant Equipment Specifications</h3>
               </div>
-              <span className="text-[11px] font-bold text-[#8c5832] bg-[#c68642]/10 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold text-[#aa6e40] bg-[#c68642]/10 px-2 py-0.5 rounded-full">
                 Physical Ratings
               </span>
             </div>
@@ -505,13 +515,13 @@ export default function PlantDataInputPage({
             <div className="space-y-4 text-xs">
               {/* Scenario Label */}
               <div>
-                <label className="font-bold text-[#5c3a21] block mb-1">Scenario Run Name</label>
+                <label className="font-bold text-[#635548] block mb-1">Scenario Run Name</label>
                 <input
                   type="text"
                   value={scenarioName}
                   onChange={(e) => setScenarioName(e.target.value)}
                   disabled={isViewer}
-                  className="w-full px-3 py-2 bg-[#faf6f0] border border-[#d4cfc5] rounded-xl text-[#21150c] font-medium focus:outline-none focus:border-[#8c5832]"
+                  className="w-full px-3 py-2 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-[#2d241d] font-medium focus:outline-none focus:border-[#aa6e40]"
                   placeholder="e.g. High Summer Solar Dispatch"
                 />
               </div>
@@ -519,7 +529,7 @@ export default function PlantDataInputPage({
               {/* Instantaneous Renewable Power Ratings */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-[#5c3a21] block mb-1">
+                  <label className="font-bold text-[#635548] block mb-1">
                     Solar Generation (kW)
                   </label>
                   <input
@@ -529,13 +539,13 @@ export default function PlantDataInputPage({
                     value={solarKw}
                     onChange={(e) => setSolarKw(parseFloat(e.target.value) || 0)}
                     disabled={isViewer}
-                    className="w-full px-3 py-2 bg-[#faf6f0] border border-[#d4cfc5] rounded-xl text-[#21150c] font-mono font-semibold focus:outline-none focus:border-[#8c5832]"
+                    className="w-full px-3 py-2 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-[#2d241d] font-mono font-semibold focus:outline-none focus:border-[#aa6e40]"
                   />
-                  <span className="text-[10px] text-[#7a6a58]">Instantaneous active PV</span>
+                  <span className="text-[10px] text-[#7a6c5f]">Instantaneous active PV</span>
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#5c3a21] block mb-1">
+                  <label className="font-bold text-[#635548] block mb-1">
                     Wind Generation (kW)
                   </label>
                   <input
@@ -545,16 +555,16 @@ export default function PlantDataInputPage({
                     value={windKw}
                     onChange={(e) => setWindKw(parseFloat(e.target.value) || 0)}
                     disabled={isViewer}
-                    className="w-full px-3 py-2 bg-[#faf6f0] border border-[#d4cfc5] rounded-xl text-[#21150c] font-mono font-semibold focus:outline-none focus:border-[#8c5832]"
+                    className="w-full px-3 py-2 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-[#2d241d] font-mono font-semibold focus:outline-none focus:border-[#aa6e40]"
                   />
-                  <span className="text-[10px] text-[#7a6a58]">Instantaneous wind feed</span>
+                  <span className="text-[10px] text-[#7a6c5f]">Instantaneous wind feed</span>
                 </div>
               </div>
 
               {/* Electrolyzer Ratings */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-[#5c3a21] block mb-1">
+                  <label className="font-bold text-[#635548] block mb-1">
                     Max Electrolyzer P (kW)
                   </label>
                   <input
@@ -564,13 +574,13 @@ export default function PlantDataInputPage({
                     value={maxElectrolyzerPower}
                     onChange={(e) => setMaxElectrolyzerPower(parseFloat(e.target.value) || 0)}
                     disabled={isViewer}
-                    className="w-full px-3 py-2 bg-[#faf6f0] border border-[#d4cfc5] rounded-xl text-[#21150c] font-mono font-semibold focus:outline-none focus:border-[#8c5832]"
+                    className="w-full px-3 py-2 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-[#2d241d] font-mono font-semibold focus:outline-none focus:border-[#aa6e40]"
                   />
-                  <span className="text-[10px] text-[#7a6a58]">Rated PEM stack limit (600 kW)</span>
+                  <span className="text-[10px] text-[#7a6c5f]">Rated PEM stack limit (600 kW)</span>
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#5c3a21] block mb-1">
+                  <label className="font-bold text-[#635548] block mb-1">
                     Specific Energy (kWh/kg)
                   </label>
                   <input
@@ -580,16 +590,16 @@ export default function PlantDataInputPage({
                     value={specificEnergyConsumption}
                     onChange={(e) => setSpecificEnergyConsumption(parseFloat(e.target.value) || 0)}
                     disabled={isViewer}
-                    className="w-full px-3 py-2 bg-[#faf6f0] border border-[#d4cfc5] rounded-xl text-[#21150c] font-mono font-semibold focus:outline-none focus:border-[#8c5832]"
+                    className="w-full px-3 py-2 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-[#2d241d] font-mono font-semibold focus:outline-none focus:border-[#aa6e40]"
                   />
-                  <span className="text-[10px] text-[#7a6a58]">Plant benchmark: 50 kWh/kg</span>
+                  <span className="text-[10px] text-[#7a6c5f]">Plant benchmark: 50 kWh/kg</span>
                 </div>
               </div>
 
               {/* Hydrogen Storage Buffer */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-[#5c3a21] block mb-1">
+                  <label className="font-bold text-[#635548] block mb-1">
                     Current Inventory (kg)
                   </label>
                   <input
@@ -599,13 +609,13 @@ export default function PlantDataInputPage({
                     value={initialStorageKg}
                     onChange={(e) => setInitialStorageKg(parseFloat(e.target.value) || 0)}
                     disabled={isViewer}
-                    className="w-full px-3 py-2 bg-[#faf6f0] border border-[#d4cfc5] rounded-xl text-[#21150c] font-mono font-semibold focus:outline-none focus:border-[#8c5832]"
+                    className="w-full px-3 py-2 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-[#2d241d] font-mono font-semibold focus:outline-none focus:border-[#aa6e40]"
                   />
-                  <span className="text-[10px] text-[#7a6a58]">Starting storage S₀</span>
+                  <span className="text-[10px] text-[#7a6c5f]">Starting storage S₀</span>
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#5c3a21] block mb-1">
+                  <label className="font-bold text-[#635548] block mb-1">
                     Tank Capacity (kg)
                   </label>
                   <input
@@ -615,29 +625,29 @@ export default function PlantDataInputPage({
                     value={maxStorageCapacityKg}
                     onChange={(e) => setMaxStorageCapacityKg(parseFloat(e.target.value) || 0)}
                     disabled={isViewer}
-                    className="w-full px-3 py-2 bg-[#faf6f0] border border-[#d4cfc5] rounded-xl text-[#21150c] font-mono font-semibold focus:outline-none focus:border-[#8c5832]"
+                    className="w-full px-3 py-2 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-[#2d241d] font-mono font-semibold focus:outline-none focus:border-[#aa6e40]"
                   />
-                  <span className="text-[10px] text-[#7a6a58]">Maximum capacity S_max</span>
+                  <span className="text-[10px] text-[#7a6c5f]">Maximum capacity S_max</span>
                 </div>
               </div>
 
               {/* Planning Horizon & Demand Baseline */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-[#5c3a21] block mb-1">
+                  <label className="font-bold text-[#635548] block mb-1">
                     Planning Horizon (Hours)
                   </label>
                   <input
                     type="number"
                     value={planningHorizon}
                     readOnly
-                    className="w-full px-3 py-2 bg-[#f0eae1] border border-[#d4cfc5] rounded-xl text-[#5c3a21] font-mono font-bold cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-[#f0eae1] border border-[#e8dfd5] rounded-xl text-[#635548] font-mono font-bold cursor-not-allowed"
                   />
-                  <span className="text-[10px] text-[#7a6a58]">Fixed: 24h Diurnal Horizon</span>
+                  <span className="text-[10px] text-[#7a6c5f]">Fixed: 24h Diurnal Horizon</span>
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#5c3a21] block mb-1">
+                  <label className="font-bold text-[#4c4035] block mb-1">
                     Uniform Demand Fill (kg/h)
                   </label>
                   <div className="flex gap-1.5">
@@ -647,20 +657,27 @@ export default function PlantDataInputPage({
                       step="1"
                       value={constantDemandInput}
                       onChange={(e) => setConstantDemandInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleRequestFill();
+                        }
+                      }}
                       disabled={isViewer}
-                      className="w-full px-3 py-2 bg-[#faf6f0] border border-[#d4cfc5] rounded-xl text-[#21150c] font-mono font-semibold focus:outline-none focus:border-[#8c5832]"
+                      className="w-full px-3 py-2 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-[#2d241d] font-mono font-semibold focus:outline-none focus:border-[#aa6e40]"
                     />
                     <button
                       type="button"
-                      onClick={handleApplyUniformDemand}
+                      id="plant-demand-fill-btn"
+                      onClick={handleRequestFill}
                       disabled={isViewer}
-                      className="px-2.5 py-2 bg-[#8c5832] text-white rounded-xl text-xs font-bold hover:brightness-110 cursor-pointer shrink-0"
+                      className="px-3 py-2 bg-[#aa6e40] hover:bg-[#8b4e23] text-white rounded-xl text-xs font-bold transition cursor-pointer shrink-0 shadow-2xs"
                       title="Apply this constant rate across all 24 hours"
                     >
                       Fill
                     </button>
                   </div>
-                  <span className="text-[10px] text-[#7a6a58]">Quick populate 24h demand</span>
+                  <span className="text-[10px] text-[#7a6c5f]">Quick populate 24h demand</span>
                 </div>
               </div>
             </div>
@@ -671,7 +688,7 @@ export default function PlantDataInputPage({
                 type="button"
                 onClick={handleScaleDiurnalCurve}
                 disabled={isViewer}
-                className="w-full py-2.5 px-4 bg-[#faf6f0] border border-[#c68642]/40 rounded-xl text-xs font-bold text-[#8c5832] hover:bg-[#f4ece1] transition cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 bg-[#fbf8f4] border border-[#c68642]/40 rounded-xl text-xs font-bold text-[#aa6e40] hover:bg-[#f6f0e8] transition cursor-pointer flex items-center justify-center gap-2"
               >
                 <Activity size={14} />
                 <span>Calibrate 24h Solar & Wind Curve to Ratings</span>
@@ -680,32 +697,32 @@ export default function PlantDataInputPage({
           </div>
 
           {/* CSV Upload & Dropzone Card */}
-          <div className="bg-white border border-[#e8dcce] shadow-sm rounded-3xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#e8dcce] pb-3">
+          <div className="bg-white border border-[#e8dfd5] shadow-sm rounded-3xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#e8dfd5] pb-3">
               <div className="flex items-center gap-2">
-                <Upload size={18} className="text-[#8c5832]" />
-                <h3 className="font-extrabold text-base text-[#21150c]">CSV Forecast Ingestion</h3>
+                <Upload size={18} className="text-[#aa6e40]" />
+                <h3 className="font-extrabold text-base text-[#2d241d]">CSV Forecast Ingestion</h3>
               </div>
-              <span className="text-[11px] font-bold text-[#8c5832] bg-[#c68642]/10 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold text-[#aa6e40] bg-[#c68642]/10 px-2 py-0.5 rounded-full">
                 Hourly Feed
               </span>
             </div>
 
-            <p className="text-xs text-[#7a6a58] leading-relaxed">
+            <p className="text-xs text-[#7a6c5f] leading-relaxed">
               Upload a 24-row CSV file containing hourly solar (kW), wind (kW), and hydrogen demand (kg).
               Uploaded data automatically updates the table and is validated for numeric integrity.
             </p>
 
             <div
               onClick={() => !isViewer && fileInputRef.current?.click()}
-              className={`border-2 border-dashed border-[#d4cfc5] hover:border-[#8c5832] bg-[#faf6f0] rounded-2xl p-6 text-center transition cursor-pointer flex flex-col items-center justify-center gap-2 ${
+              className={`border-2 border-dashed border-[#e8dfd5] hover:border-[#aa6e40] bg-[#fbf8f4] rounded-2xl p-6 text-center transition cursor-pointer flex flex-col items-center justify-center gap-2 ${
                 isViewer ? "opacity-60 cursor-not-allowed" : ""
               }`}
             >
-              <FileSpreadsheet size={32} className="text-[#8c5832]" />
+              <FileSpreadsheet size={32} className="text-[#aa6e40]" />
               <div>
-                <p className="text-xs font-bold text-[#21150c]">Click to upload or drag & drop CSV</p>
-                <p className="text-[10px] text-[#7a6a58] mt-0.5">Columns: Hour, Time, Solar_kW, Wind_kW, Demand_kg</p>
+                <p className="text-xs font-bold text-[#2d241d]">Click to upload or drag & drop CSV</p>
+                <p className="text-[10px] text-[#7a6c5f] mt-0.5">Columns: Hour, Time, Solar_kW, Wind_kW, Demand_kg</p>
               </div>
               <input
                 ref={fileInputRef}
@@ -719,13 +736,13 @@ export default function PlantDataInputPage({
           </div>
 
           {/* Action Toolbar */}
-          <div className="bg-white border border-[#e8dcce] shadow-sm rounded-3xl p-5 space-y-3">
-            <h4 className="text-xs font-bold text-[#5c3a21] uppercase tracking-wider">Execute Workflow</h4>
+          <div className="bg-white border border-[#e8dfd5] shadow-sm rounded-3xl p-5 space-y-3">
+            <h4 className="text-xs font-bold text-[#635548] uppercase tracking-wider">Execute Workflow</h4>
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={handleSavePlantData}
                 disabled={saveLoading || isViewer}
-                className="w-full py-2.5 px-3 rounded-xl border border-[#8c5832] text-[#8c5832] bg-white hover:bg-[#faf6f0] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+                className="w-full py-2.5 px-3 rounded-xl border border-[#aa6e40] text-[#aa6e40] bg-white hover:bg-[#fbf8f4] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
               >
                 {saveLoading ? <RefreshCw size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
                 <span>{saveLoading ? "Validating..." : "Validate & Save"}</span>
@@ -736,7 +753,7 @@ export default function PlantDataInputPage({
                 disabled={optLoading || isViewer}
                 className="w-full py-2.5 px-3 rounded-xl text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-md hover:brightness-110 active:scale-[0.99] disabled:opacity-50"
                 style={{
-                  background: "linear-gradient(135deg, #c68642 0%, #8c5832 60%, #5c3a21 100%)",
+                  background: "linear-gradient(135deg, #c68642 0%, #aa6e40 60%, #635548 100%)",
                 }}
               >
                 {optLoading ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
@@ -749,15 +766,15 @@ export default function PlantDataInputPage({
         {/* RIGHT COLUMN: 24-Hour Forecast Table & Dispatch Schedule (7 Cols) */}
         <div className="lg:col-span-7 space-y-6">
           {/* Tabs: Forecast Table vs Optimization Results */}
-          <div className="bg-white border border-[#e8dcce] shadow-sm rounded-3xl p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#e8dcce] pb-3">
+          <div className="bg-white border border-[#e8dfd5] shadow-sm rounded-3xl p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#e8dfd5] pb-3">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setActiveTab("table")}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
                     activeTab === "table"
-                      ? "bg-[#8c5832] text-white border-[#8c5832] shadow-sm"
-                      : "bg-[#faf6f0] text-[#5c3a21] border-[#d4cfc5] hover:bg-[#f4ece1]"
+                      ? "bg-[#aa6e40] text-white border-[#aa6e40] shadow-sm"
+                      : "bg-[#fbf8f4] text-[#635548] border-[#e8dfd5] hover:bg-[#f6f0e8]"
                   }`}
                 >
                   24-Hour Forecast Table
@@ -766,8 +783,8 @@ export default function PlantDataInputPage({
                   onClick={() => setActiveTab("results")}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border flex items-center gap-1.5 ${
                     activeTab === "results"
-                      ? "bg-[#8c5832] text-white border-[#8c5832] shadow-sm"
-                      : "bg-[#faf6f0] text-[#5c3a21] border-[#d4cfc5] hover:bg-[#f4ece1]"
+                      ? "bg-[#aa6e40] text-white border-[#aa6e40] shadow-sm"
+                      : "bg-[#fbf8f4] text-[#635548] border-[#e8dfd5] hover:bg-[#f6f0e8]"
                   }`}
                 >
                   <Zap size={13} />
@@ -779,24 +796,24 @@ export default function PlantDataInputPage({
               </div>
 
               {/* KPI Summary badges */}
-              <div className="flex items-center gap-2 text-[11px] font-bold text-[#7a6a58]">
-                <span>Total Renewable: <strong className="text-[#21150c] font-mono">{totalRenewableKwh} kWh</strong></span>
+              <div className="flex items-center gap-2 text-[11px] font-bold text-[#7a6c5f]">
+                <span>Total Renewable: <strong className="text-[#2d241d] font-mono">{totalRenewableKwh} kWh</strong></span>
                 <span>•</span>
-                <span>Demand: <strong className="text-[#21150c] font-mono">{totalDemandKg} kg</strong></span>
+                <span>Demand: <strong className="text-[#2d241d] font-mono">{totalDemandKg} kg</strong></span>
               </div>
             </div>
 
             {/* TAB 1: 24-Hour Editable Forecast Grid */}
             {activeTab === "table" && (
               <div className="space-y-3">
-                <p className="text-xs text-[#7a6a58]">
+                <p className="text-xs text-[#7a6c5f]">
                   Values in the table below are directly editable. Any manual changes dynamically update total daily energy
                   and are validated when running the Linear Program.
                 </p>
 
-                <div className="max-h-[520px] overflow-y-auto border border-[#e8dcce] rounded-2xl">
+                <div className="max-h-[520px] overflow-y-auto border border-[#e8dfd5] rounded-2xl">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#faf6f0] text-[#5c3a21] font-bold sticky top-0 border-b border-[#e8dcce] z-10">
+                    <thead className="bg-[#fbf8f4] text-[#635548] font-bold sticky top-0 border-b border-[#e8dfd5] z-10">
                       <tr>
                         <th className="py-2.5 px-3 w-16">Hour</th>
                         <th className="py-2.5 px-3">Time</th>
@@ -815,9 +832,9 @@ export default function PlantDataInputPage({
                         const timeStr = `${String(i).padStart(2, "0")}:00`;
 
                         return (
-                          <tr key={i} className="hover:bg-[#faf6f0]/70 transition-colors">
-                            <td className="py-2 px-3 font-semibold text-[#8c5832]">H{i}</td>
-                            <td className="py-2 px-3 text-[#5c3a21]">{timeStr}</td>
+                          <tr key={i} className="hover:bg-[#fbf8f4]/70 transition-colors">
+                            <td className="py-2 px-3 font-semibold text-[#aa6e40]">H{i}</td>
+                            <td className="py-2 px-3 text-[#635548]">{timeStr}</td>
                             <td className="py-1 px-3">
                               <input
                                 type="number"
@@ -825,7 +842,7 @@ export default function PlantDataInputPage({
                                 value={sVal}
                                 onChange={(e) => handleUpdateHourlyCell(i, "solar", e.target.value)}
                                 disabled={isViewer}
-                                className="w-20 px-2 py-1 bg-white border border-[#d4cfc5] rounded-lg text-[#21150c] font-mono text-xs focus:outline-none focus:border-[#8c5832]"
+                                className="w-20 px-2 py-1 bg-white border border-[#e8dfd5] rounded-lg text-[#2d241d] font-mono text-xs focus:outline-none focus:border-[#aa6e40]"
                               />
                             </td>
                             <td className="py-1 px-3">
@@ -835,10 +852,10 @@ export default function PlantDataInputPage({
                                 value={wVal}
                                 onChange={(e) => handleUpdateHourlyCell(i, "wind", e.target.value)}
                                 disabled={isViewer}
-                                className="w-20 px-2 py-1 bg-white border border-[#d4cfc5] rounded-lg text-[#21150c] font-mono text-xs focus:outline-none focus:border-[#8c5832]"
+                                className="w-20 px-2 py-1 bg-white border border-[#e8dfd5] rounded-lg text-[#2d241d] font-mono text-xs focus:outline-none focus:border-[#aa6e40]"
                               />
                             </td>
-                            <td className="py-2 px-3 font-bold text-[#21150c]">{total}</td>
+                            <td className="py-2 px-3 font-bold text-[#2d241d]">{total}</td>
                             <td className="py-1 px-3">
                               <input
                                 key={`demand-${i}-${fillKey}`}
@@ -847,22 +864,22 @@ export default function PlantDataInputPage({
                                 value={dVal}
                                 onChange={(e) => handleUpdateHourlyCell(i, "demand", e.target.value)}
                                 disabled={isViewer}
-                                className="w-20 px-2 py-1 bg-white border border-[#d4cfc5] rounded-lg text-[#21150c] font-mono text-xs focus:outline-none focus:border-[#8c5832]"
+                                className="w-20 px-2 py-1 bg-white border border-[#e8dfd5] rounded-lg text-[#2d241d] font-mono text-xs focus:outline-none focus:border-[#aa6e40]"
                               />
                             </td>
                           </tr>
                         );
                       })}
                     </tbody>
-                    <tfoot className="bg-[#faf6f0] font-bold text-xs sticky bottom-0 border-t border-[#e8dcce]">
+                    <tfoot className="bg-[#fbf8f4] font-bold text-xs sticky bottom-0 border-t border-[#e8dfd5]">
                       <tr>
                         <td className="py-2.5 px-3" colSpan={2}>
                           24h Sum
                         </td>
-                        <td className="py-2.5 px-3 text-[#8c5832] font-mono">{totalSolarKwh} kWh</td>
-                        <td className="py-2.5 px-3 text-[#8c5832] font-mono">{totalWindKwh} kWh</td>
-                        <td className="py-2.5 px-3 text-[#21150c] font-mono">{totalRenewableKwh} kWh</td>
-                        <td className="py-2.5 px-3 text-[#8c5832] font-mono">{totalDemandKg} kg</td>
+                        <td className="py-2.5 px-3 text-[#aa6e40] font-mono">{totalSolarKwh} kWh</td>
+                        <td className="py-2.5 px-3 text-[#aa6e40] font-mono">{totalWindKwh} kWh</td>
+                        <td className="py-2.5 px-3 text-[#2d241d] font-mono">{totalRenewableKwh} kWh</td>
+                        <td className="py-2.5 px-3 text-[#aa6e40] font-mono">{totalDemandKg} kg</td>
                       </tr>
                     </tfoot>
                   </table>
@@ -874,17 +891,17 @@ export default function PlantDataInputPage({
             {activeTab === "results" && (
               <div className="space-y-4">
                 {!optimizationResult ? (
-                  <div className="p-8 text-center bg-[#faf6f0] border border-[#e8dcce] rounded-2xl space-y-3">
+                  <div className="p-8 text-center bg-[#fbf8f4] border border-[#e8dfd5] rounded-2xl space-y-3">
                     <Zap className="mx-auto text-[#c68642]" size={36} />
-                    <h4 className="font-bold text-sm text-[#21150c]">No Optimization Results Computed Yet</h4>
-                    <p className="text-xs text-[#7a6a58] max-w-md mx-auto">
+                    <h4 className="font-bold text-sm text-[#2d241d]">No Optimization Results Computed Yet</h4>
+                    <p className="text-xs text-[#7a6c5f] max-w-md mx-auto">
                       Click the &quot;Run Optimization&quot; button to calculate the optimal 24-hour Linear Programming
                       electrolyzer dispatch schedule with your entered plant parameters.
                     </p>
                     <button
                       onClick={handleExecuteOptimization}
                       disabled={optLoading || isViewer}
-                      className="px-4 py-2 bg-[#8c5832] text-white rounded-xl text-xs font-bold hover:brightness-110 cursor-pointer shadow-sm"
+                      className="px-4 py-2 bg-[#aa6e40] text-white rounded-xl text-xs font-bold hover:brightness-110 cursor-pointer shadow-sm"
                     >
                       {optLoading ? "Solving..." : "Run Optimization Now"}
                     </button>
@@ -893,36 +910,36 @@ export default function PlantDataInputPage({
                   <div className="space-y-4">
                     {/* Summary KPI Cards */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div className="p-3 bg-[#faf6f0] border border-[#e8dcce] rounded-xl text-center">
-                        <span className="text-[10px] text-[#7a6a58] block font-medium">Renewable Utilization</span>
-                        <span className="text-lg font-extrabold text-[#8c5832] font-mono">
+                      <div className="p-3 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-center">
+                        <span className="text-[10px] text-[#7a6c5f] block font-medium">Renewable Utilization</span>
+                        <span className="text-lg font-extrabold text-[#aa6e40] font-mono">
                           {optimizationResult.summaryMetrics?.optimized?.renewableUtilizationPct ?? 0}%
                         </span>
                       </div>
-                      <div className="p-3 bg-[#faf6f0] border border-[#e8dcce] rounded-xl text-center">
-                        <span className="text-[10px] text-[#7a6a58] block font-medium">H₂ Produced</span>
-                        <span className="text-lg font-extrabold text-[#21150c] font-mono">
+                      <div className="p-3 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-center">
+                        <span className="text-[10px] text-[#7a6c5f] block font-medium">H₂ Produced</span>
+                        <span className="text-lg font-extrabold text-[#2d241d] font-mono">
                           {optimizationResult.summaryMetrics?.optimized?.totalHydrogenProducedKg ?? 0} <span className="text-xs">kg</span>
                         </span>
                       </div>
-                      <div className="p-3 bg-[#faf6f0] border border-[#e8dcce] rounded-xl text-center">
-                        <span className="text-[10px] text-[#7a6a58] block font-medium">Unmet Demand</span>
+                      <div className="p-3 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-center">
+                        <span className="text-[10px] text-[#7a6c5f] block font-medium">Unmet Demand</span>
                         <span className="text-lg font-extrabold text-emerald-700 font-mono">
                           {optimizationResult.summaryMetrics?.optimized?.totalUnmetDemandKg ?? 0} <span className="text-xs">kg</span>
                         </span>
                       </div>
-                      <div className="p-3 bg-[#faf6f0] border border-[#e8dcce] rounded-xl text-center">
-                        <span className="text-[10px] text-[#7a6a58] block font-medium">Final Tank Level</span>
-                        <span className="text-lg font-extrabold text-[#8c5832] font-mono">
+                      <div className="p-3 bg-[#fbf8f4] border border-[#e8dfd5] rounded-xl text-center">
+                        <span className="text-[10px] text-[#7a6c5f] block font-medium">Final Tank Level</span>
+                        <span className="text-lg font-extrabold text-[#aa6e40] font-mono">
                           {optimizationResult.summaryMetrics?.optimized?.finalStorageInventoryKg ?? 0} <span className="text-xs">kg</span>
                         </span>
                       </div>
                     </div>
 
                     {/* Schedule Mini-Table */}
-                    <div className="max-h-[380px] overflow-y-auto border border-[#e8dcce] rounded-2xl">
+                    <div className="max-h-[380px] overflow-y-auto border border-[#e8dfd5] rounded-2xl">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-[#faf6f0] text-[#5c3a21] font-bold sticky top-0 border-b border-[#e8dcce]">
+                        <thead className="bg-[#fbf8f4] text-[#635548] font-bold sticky top-0 border-b border-[#e8dfd5]">
                           <tr>
                             <th className="py-2.5 px-2.5">Hour</th>
                             <th className="py-2.5 px-2.5">Avail P (kW)</th>
@@ -935,10 +952,10 @@ export default function PlantDataInputPage({
                         </thead>
                         <tbody className="divide-y divide-[#f0eae1] font-mono">
                           {(optimizationResult.hourlyDispatchSchedule || []).map((row) => (
-                            <tr key={row.hour} className="hover:bg-[#faf6f0]/70">
-                              <td className="py-1.5 px-2.5 font-bold text-[#8c5832]">{row.timeLabel}</td>
+                            <tr key={row.hour} className="hover:bg-[#fbf8f4]/70">
+                              <td className="py-1.5 px-2.5 font-bold text-[#aa6e40]">{row.timeLabel}</td>
                               <td className="py-1.5 px-2.5">{row.availableRenewableKw}</td>
-                              <td className="py-1.5 px-2.5 font-semibold text-[#21150c]">{row.electrolyzerPowerKw}</td>
+                              <td className="py-1.5 px-2.5 font-semibold text-[#2d241d]">{row.electrolyzerPowerKw}</td>
                               <td className="py-1.5 px-2.5 text-emerald-700 font-bold">{row.h2ProducedKg}</td>
                               <td className="py-1.5 px-2.5">{row.h2SuppliedKg}</td>
                               <td className="py-1.5 px-2.5 font-medium">{row.storageInventoryKg}</td>
@@ -950,16 +967,16 @@ export default function PlantDataInputPage({
                     </div>
 
                     {/* Link to Full Optimization Page */}
-                    <div className="p-4 bg-[#faf6f0] border border-[#e8dcce] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="p-4 bg-[#fbf8f4] border border-[#e8dfd5] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
                       <div>
-                        <h5 className="font-bold text-xs text-[#21150c]">Want deep LP analytics & baseline comparison?</h5>
-                        <p className="text-[11px] text-[#7a6a58] mt-0.5">
+                        <h5 className="font-bold text-xs text-[#2d241d]">Want deep LP analytics & baseline comparison?</h5>
+                        <p className="text-[11px] text-[#7a6c5f] mt-0.5">
                           View interactive diurnal power curves, tank inventory evolution, and financial savings.
                         </p>
                       </div>
                       <button
                         onClick={() => navigate("/optimization")}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#8c5832] hover:bg-[#5c3a21] text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer shrink-0"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#aa6e40] hover:bg-[#8b4e23] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
                       >
                         <span>View Full Optimization Page</span>
                         <ArrowRight size={14} />
@@ -972,6 +989,70 @@ export default function PlantDataInputPage({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal for 24h Demand Fill */}
+      {showFillConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/35 backdrop-blur-xs animate-in fade-in duration-150">
+          <div
+            className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-[#e8dfd5] space-y-4 animate-in zoom-in-95 duration-150"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="fill-modal-title"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-[#aa6e40] shrink-0">
+                <AlertCircle size={22} />
+              </div>
+              <div>
+                <h3 id="fill-modal-title" className="text-base font-extrabold text-[#2d241d]">
+                  Confirm Demand Fill
+                </h3>
+                <p className="text-xs text-[#7a6c5f]">
+                  Please confirm before applying changes
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-[#fbf8f4] border border-[#e8dfd5] rounded-2xl text-xs text-[#4c4035] space-y-2.5">
+              <p className="font-medium">
+                Are you sure you want to proceed? This will overwrite all 24 hourly demand slots with:
+              </p>
+              <div className="flex items-center justify-between font-mono font-bold bg-white px-3.5 py-2.5 rounded-xl border border-[#e8dfd5]">
+                <span className="text-[#635548]">Uniform Rate:</span>
+                <span className="text-[#aa6e40] text-sm">{constantDemandInput} kg/h</span>
+              </div>
+              <div className="flex items-center justify-between font-mono font-semibold text-[11px] text-[#7a6c5f] px-1">
+                <span>Total 24h Demand:</span>
+                <span>{Number(constantDemandInput) * 24} kg/day</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-[#7a6c5f] leading-relaxed">
+              Only proceed if you want to update the full 24-hour hydrogen demand schedule with this constant value.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                id="cancel-demand-fill-btn"
+                onClick={() => setShowFillConfirmModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-[#e8dfd5] bg-white text-xs font-bold text-[#635548] hover:bg-[#fbf8f4] transition cursor-pointer"
+              >
+                No, Cancel
+              </button>
+              <button
+                type="button"
+                id="confirm-demand-fill-btn"
+                onClick={handleConfirmUniformDemand}
+                className="px-5 py-2.5 rounded-xl bg-[#aa6e40] hover:bg-[#8b4e23] text-white text-xs font-bold shadow-sm transition cursor-pointer flex items-center gap-1.5"
+              >
+                <CheckCircle2 size={15} />
+                <span>Yes, Proceed & Apply</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

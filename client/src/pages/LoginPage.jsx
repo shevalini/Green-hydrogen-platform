@@ -1,6 +1,6 @@
-import React, { useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext.jsx";
+import { AuthContext } from "../context/authContext.js";
 import {
   Eye,
   EyeOff,
@@ -33,6 +33,7 @@ export default function LoginPage() {
       title: "System Admin",
       email: "admin@greenh2.local",
       pass: "2024",
+      subtitle: "Full System Access",
       desc: "Full dispatch, user management & optimizer control",
     },
     {
@@ -40,6 +41,7 @@ export default function LoginPage() {
       title: "Plant Operator",
       email: "operator@greenh2.com",
       pass: "2024",
+      subtitle: "Operations & Control",
       desc: "Telemetry monitoring & optimizer scenario runs",
     },
     {
@@ -47,6 +49,7 @@ export default function LoginPage() {
       title: "Energy Analyst",
       email: "viewer@greenh2.com",
       pass: "2024",
+      subtitle: "Analytics & Monitoring",
       desc: "Read-only access to KPIs, storage & forecasts",
     },
   ];
@@ -88,60 +91,60 @@ export default function LoginPage() {
     <div
       className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
-        background: "linear-gradient(135deg, #fdfbf7 0%, #f6eee4 30%, #ede1d2 70%, #fbf8f4 100%)",
+        background: "linear-gradient(135deg, #fdfcfb 0%, #f7f3ee 35%, #eee6db 75%, #fbf9f6 100%)",
       }}
     >
       {/* Subtle background grid pattern */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.035]"
+        className="absolute inset-0 pointer-events-none opacity-[0.025]"
         style={{
           backgroundImage:
-            "radial-gradient(#6e3e25 1.5px, transparent 1.5px), radial-gradient(#6e3e25 1.5px, #fdfbf7 1.5px)",
+            "radial-gradient(#7b4928 1.5px, transparent 1.5px), radial-gradient(#7b4928 1.5px, #fdfcfb 1.5px)",
           backgroundSize: "32px 32px",
           backgroundPosition: "0 0, 16px 16px",
         }}
       />
 
-      {/* Decorative ambient light coffee / cream glows */}
+      {/* Decorative ambient soft glows with low darkness */}
       <div
-        className="absolute top-[-10%] left-[-5%] w-[550px] h-[550px] rounded-full pointer-events-none blur-[130px] opacity-60"
-        style={{ background: "#f0dfcf" }}
+        className="absolute top-[-10%] left-[-5%] w-[550px] h-[550px] rounded-full pointer-events-none blur-[130px] opacity-45"
+        style={{ background: "#f5e8da" }}
       />
       <div
-        className="absolute bottom-[-10%] right-[-5%] w-[550px] h-[550px] rounded-full pointer-events-none blur-[140px] opacity-50"
-        style={{ background: "#e5d2bf" }}
+        className="absolute bottom-[-10%] right-[-5%] w-[550px] h-[550px] rounded-full pointer-events-none blur-[140px] opacity-40"
+        style={{ background: "#eedcc9" }}
       />
       <div
-        className="absolute top-[35%] right-[18%] w-[380px] h-[380px] rounded-full pointer-events-none blur-[110px] opacity-40"
-        style={{ background: "#f7ebd9" }}
+        className="absolute top-[35%] right-[18%] w-[380px] h-[380px] rounded-full pointer-events-none blur-[110px] opacity-30"
+        style={{ background: "#faf0e3" }}
       />
 
       <div className="w-full max-w-xl relative z-10 py-8">
-        {/* Main Light Coffee Card */}
+        {/* Main Clean Card */}
         <div
           className="rounded-3xl overflow-hidden border backdrop-blur-2xl transition-all"
           style={{
-            background: "rgba(255, 255, 255, 0.92)",
-            borderColor: "rgba(216, 198, 179, 0.8)",
+            background: "rgba(255, 255, 255, 0.96)",
+            borderColor: "rgba(232, 223, 213, 0.9)",
             boxShadow:
-              "0 24px 60px -12px rgba(85, 48, 26, 0.12), 0 8px 24px -4px rgba(196, 135, 78, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
+              "0 20px 50px -12px rgba(92, 56, 32, 0.08), 0 6px 20px -4px rgba(170, 110, 64, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
           }}
         >
           {/* Header Banner */}
           <div
             className="px-8 pt-8 pb-7 text-center border-b relative"
             style={{
-              background: "linear-gradient(180deg, #fdfbf8 0%, #f5eee4 100%)",
-              borderColor: "rgba(222, 206, 189, 0.75)",
+              background: "linear-gradient(180deg, #ffffff 0%, #faf6f1 100%)",
+              borderColor: "rgba(232, 223, 213, 0.8)",
             }}
           >
             {/* Logo Icon */}
             <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border transition-transform hover:scale-105 duration-200"
               style={{
-                background: "linear-gradient(135deg, #8b5230 0%, #a8693a 50%, #c4874e 100%)",
-                borderColor: "rgba(245, 222, 195, 0.8)",
-                boxShadow: "0 10px 24px rgba(139, 82, 48, 0.28)",
+                background: "linear-gradient(135deg, #aa6e40 0%, #c68953 100%)",
+                borderColor: "rgba(245, 230, 215, 0.9)",
+                boxShadow: "0 8px 20px rgba(170, 110, 64, 0.22)",
               }}
             >
               <Droplets className="text-[#ffffff]" size={32} />
@@ -149,37 +152,37 @@ export default function LoginPage() {
 
             {/* Pill Tag */}
             <div
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2 border shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2 border shadow-2xs"
               style={{
-                background: "rgba(168, 105, 58, 0.10)",
-                color: "#7a4627",
-                borderColor: "rgba(168, 105, 58, 0.25)",
+                background: "rgba(170, 110, 64, 0.08)",
+                color: "#7b4928",
+                borderColor: "rgba(170, 110, 64, 0.2)",
               }}
             >
-              <Sparkles size={12} className="text-[#a8693a]" />
+              <Sparkles size={12} className="text-[#aa6e40]" />
               <span>Optimized Energy & Storage Management</span>
             </div>
 
             {/* Title */}
-            <h1 className="text-2xl font-extrabold tracking-tight text-[#2c170b]">
+            <h1 className="text-2xl font-extrabold tracking-tight text-[#2d241d]">
               Green H₂ Energy Platform
             </h1>
 
             {/* Description */}
-            <p className="text-xs mt-2 max-w-md mx-auto leading-relaxed text-[#685748] font-medium">
+            <p className="text-xs mt-2 max-w-md mx-auto leading-relaxed text-[#6c5e52] font-medium">
               Optimizing solar & wind energy allocation, hydrogen production scheduling, and storage inventory.
             </p>
           </div>
 
-          {/* Quick Demo Credentials Switcher */}
+          {/* Quick Demo Role Switcher */}
           <div className="px-8 pt-6 pb-2">
             <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#635345]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#635548]">
                 Select Demo Role
               </span>
-              <span className="text-[11px] font-semibold text-[#8b5230] flex items-center gap-1">
-                <Zap size={12} className="text-[#a8693a]" />
-                Click to instant-fill
+              <span className="text-[11px] font-semibold text-[#8b4e23] flex items-center gap-1">
+                <Zap size={12} className="text-[#aa6e40]" />
+                Instant Profile Access
               </span>
             </div>
             <div className="grid grid-cols-3 gap-2.5">
@@ -192,29 +195,29 @@ export default function LoginPage() {
                     onClick={() => selectDemoRole(p)}
                     className={`p-3 rounded-2xl text-left border transition-all duration-200 cursor-pointer ${
                       isSelected
-                        ? "border-[#8b5230] bg-[#fffaf5] shadow-sm ring-2 ring-[#a8693a]/25"
-                        : "border-[#e6dad0] bg-[#fdfbf9] hover:bg-[#f6eee4] hover:border-[#c4874e]/60"
+                        ? "border-[#aa6e40] bg-[#fffaf5] shadow-xs ring-2 ring-[#aa6e40]/20"
+                        : "border-[#eadecf] bg-[#fcfbfa] hover:bg-[#f6eee4] hover:border-[#c68953]/50"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span
                         className="text-[10px] font-bold px-1.5 py-0.5 rounded-md border uppercase tracking-wider"
                         style={{
-                          background: isSelected ? "rgba(139, 82, 48, 0.12)" : "rgba(168, 105, 58, 0.08)",
-                          color: isSelected ? "#6e3e25" : "#7c4e2e",
-                          borderColor: isSelected ? "rgba(139, 82, 48, 0.3)" : "rgba(168, 105, 58, 0.2)",
+                          background: isSelected ? "rgba(170, 110, 64, 0.12)" : "rgba(170, 110, 64, 0.06)",
+                          color: isSelected ? "#7b4928" : "#8b4e23",
+                          borderColor: isSelected ? "rgba(170, 110, 64, 0.28)" : "rgba(170, 110, 64, 0.18)",
                         }}
                       >
                         {p.role}
                       </span>
                       {isSelected ? (
-                        <Check size={14} className="text-[#8b5230] stroke-[2.5]" />
+                        <Check size={14} className="text-[#8b4e23] stroke-[2.5]" />
                       ) : (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#d8c6b3]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#dccdbc]" />
                       )}
                     </div>
-                    <p className="text-xs font-bold text-[#2c170b] truncate">{p.title}</p>
-                    <p className="text-[11px] font-medium text-[#7d6c5e] truncate mt-0.5">{p.pass}</p>
+                    <p className="text-xs font-bold text-[#2d241d] truncate">{p.title}</p>
+                    <p className="text-[11px] font-medium text-[#7a6c5f] truncate mt-0.5">{p.subtitle}</p>
                   </button>
                 );
               })}
@@ -241,11 +244,11 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {/* Email */}
               <div>
-                <label htmlFor="login-email" className="block text-xs font-semibold text-[#46392d] mb-1.5">
+                <label htmlFor="login-email" className="block text-xs font-semibold text-[#4c4035] mb-1.5">
                   Account Email
                 </label>
                 <div className="relative">
-                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8b7765] pointer-events-none" />
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8c7e6f] pointer-events-none" />
                   <input
                     id="login-email"
                     type="email"
@@ -257,19 +260,19 @@ export default function LoginPage() {
                       setFieldErrors((p) => ({ ...p, email: null }));
                     }}
                     placeholder="admin@greenh2.local"
-                    className="w-full rounded-xl pl-10 pr-4 py-3 text-sm text-[#2c170b] placeholder-[#a69687] bg-white border outline-none transition font-medium"
+                    className="w-full rounded-xl pl-10 pr-4 py-3 text-sm text-[#2d241d] placeholder-[#a69687] bg-white border outline-none transition font-medium"
                     style={{
-                      borderColor: fieldErrors.email ? "rgba(220, 38, 38, 0.6)" : "rgba(216, 198, 179, 0.9)",
+                      borderColor: fieldErrors.email ? "rgba(220, 38, 38, 0.6)" : "rgba(232, 223, 213, 0.9)",
                       boxShadow: "0 1px 3px rgba(70, 40, 20, 0.04)",
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = "#8b5230";
-                      e.target.style.boxShadow = "0 0 0 3px rgba(168, 105, 58, 0.16)";
+                      e.target.style.borderColor = "#aa6e40";
+                      e.target.style.boxShadow = "0 0 0 3px rgba(170, 110, 64, 0.16)";
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = fieldErrors.email
                         ? "rgba(220, 38, 38, 0.6)"
-                        : "rgba(216, 198, 179, 0.9)";
+                        : "rgba(232, 223, 213, 0.9)";
                       e.target.style.boxShadow = "0 1px 3px rgba(70, 40, 20, 0.04)";
                     }}
                   />
@@ -281,11 +284,11 @@ export default function LoginPage() {
 
               {/* Password */}
               <div>
-                <label htmlFor="login-password" className="block text-xs font-semibold text-[#46392d] mb-1.5">
+                <label htmlFor="login-password" className="block text-xs font-semibold text-[#4c4035] mb-1.5">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8b7765] pointer-events-none" />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8c7e6f] pointer-events-none" />
                   <input
                     id="login-password"
                     type={showPassword ? "text" : "password"}
@@ -297,26 +300,26 @@ export default function LoginPage() {
                       setFieldErrors((p) => ({ ...p, password: null }));
                     }}
                     placeholder="••••••••"
-                    className="w-full rounded-xl pl-10 pr-12 py-3 text-sm text-[#2c170b] placeholder-[#a69687] bg-white border outline-none transition font-medium"
+                    className="w-full rounded-xl pl-10 pr-12 py-3 text-sm text-[#2d241d] placeholder-[#a69687] bg-white border outline-none transition font-medium"
                     style={{
-                      borderColor: fieldErrors.password ? "rgba(220, 38, 38, 0.6)" : "rgba(216, 198, 179, 0.9)",
+                      borderColor: fieldErrors.password ? "rgba(220, 38, 38, 0.6)" : "rgba(232, 223, 213, 0.9)",
                       boxShadow: "0 1px 3px rgba(70, 40, 20, 0.04)",
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = "#8b5230";
-                      e.target.style.boxShadow = "0 0 0 3px rgba(168, 105, 58, 0.16)";
+                      e.target.style.borderColor = "#aa6e40";
+                      e.target.style.boxShadow = "0 0 0 3px rgba(170, 110, 64, 0.16)";
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = fieldErrors.password
                         ? "rgba(220, 38, 38, 0.6)"
-                        : "rgba(216, 198, 179, 0.9)";
+                        : "rgba(232, 223, 213, 0.9)";
                       e.target.style.boxShadow = "0 1px 3px rgba(70, 40, 20, 0.04)";
                     }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((p) => !p)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8b7765] hover:text-[#522e1b] transition cursor-pointer"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8c7e6f] hover:text-[#5c3820] transition cursor-pointer"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -332,11 +335,11 @@ export default function LoginPage() {
                 id="login-submit-btn"
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl transition-all duration-200 text-sm text-white cursor-pointer hover:brightness-105 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed mt-2 border shadow-md"
+                className="w-full flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl transition-all duration-200 text-sm text-white cursor-pointer hover:brightness-105 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed mt-2 border shadow-sm"
                 style={{
-                  background: "linear-gradient(135deg, #8b5230 0%, #a8693a 50%, #c4874e 100%)",
-                  borderColor: "rgba(240, 215, 185, 0.6)",
-                  boxShadow: "0 8px 24px rgba(139, 82, 48, 0.28)",
+                  background: "linear-gradient(135deg, #aa6e40 0%, #c68953 100%)",
+                  borderColor: "rgba(245, 230, 215, 0.6)",
+                  boxShadow: "0 6px 20px rgba(170, 110, 64, 0.22)",
                 }}
               >
                 {loading ? (
@@ -358,20 +361,20 @@ export default function LoginPage() {
           <div
             className="px-8 py-3.5 text-center border-t text-[11px] font-medium"
             style={{
-              background: "#faf6f0",
-              borderColor: "rgba(222, 206, 189, 0.75)",
-              color: "#786759",
+              background: "#fbf9f6",
+              borderColor: "rgba(232, 223, 213, 0.8)",
+              color: "#7a6c5f",
             }}
           >
             <span className="flex items-center justify-center gap-1.5">
-              <Leaf size={12} className="text-[#a8693a]" />
+              <Leaf size={12} className="text-[#aa6e40]" />
               Authorized Plant Personnel · MERN Stack Production Architecture
             </span>
           </div>
         </div>
 
         {/* Branding under card */}
-        <p className="text-center text-xs mt-4 text-[#756353] font-medium">
+        <p className="text-center text-xs mt-4 text-[#7a6c5f] font-medium">
           Clean H₂ Dispatch · Diurnal Solar/Wind Balance · 24-Hour Horizon LP
         </p>
       </div>

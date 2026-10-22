@@ -144,6 +144,7 @@ function validateInputs(params) {
  * Solves: min c^T x  s.t. A x <= b, x >= 0
  */
 function solveSimplexLP(c, A, b) {
+  const EPSILON = 1e-7;
   const m = A.length;
   const n = c.length;
   const artIndices = [];
@@ -151,7 +152,7 @@ function solveSimplexLP(c, A, b) {
   const AClean = A.map((row) => [...row]);
 
   for (let i = 0; i < m; i++) {
-    if (bClean[i] < -1e-9) artIndices.push(i);
+    if (bClean[i] < -EPSILON) artIndices.push(i);
   }
 
   const numArt = artIndices.length;
@@ -165,7 +166,7 @@ function solveSimplexLP(c, A, b) {
 
   for (let i = 0; i < m; i++) {
     const row = i + 1;
-    if (bClean[i] >= -1e-9) {
+    if (bClean[i] >= -EPSILON) {
       for (let j = 0; j < n; j++) T[row][j] = AClean[i][j];
       T[row][n + i] = 1.0;
       T[row][totalCols - 1] = Math.max(0, bClean[i]);
@@ -188,7 +189,7 @@ function solveSimplexLP(c, A, b) {
     for (let i = 0; i < m + 2; i++) {
       if (i !== pRow) {
         const factor = T[i][pCol];
-        if (Math.abs(factor) > 1e-12) {
+        if (Math.abs(factor) > EPSILON) {
           for (let j = 0; j < totalCols; j++) {
             T[i][j] -= factor * T[pRow][j];
           }
@@ -211,7 +212,7 @@ function solveSimplexLP(c, A, b) {
 
     while (true) {
       let enterCol = -1;
-      let minVal = -1e-8;
+      let minVal = -EPSILON;
       for (let j = 0; j < totalCols - 1; j++) {
         if (T[p1Row][j] < minVal) {
           minVal = T[p1Row][j];
@@ -224,10 +225,10 @@ function solveSimplexLP(c, A, b) {
       let minRatio = Infinity;
       for (let i = 0; i < m; i++) {
         const row = i + 1;
-        if (T[row][enterCol] > 1e-8) {
+        if (T[row][enterCol] > EPSILON) {
           const ratio = T[row][totalCols - 1] / T[row][enterCol];
           // Bland's rule: prefer smaller ratio or smaller basis index on tie
-          if (ratio < minRatio - 1e-11) {
+          if (ratio < minRatio - EPSILON) {
             minRatio = ratio;
             leaveRow = row;
           }
@@ -237,7 +238,7 @@ function solveSimplexLP(c, A, b) {
       pivot(leaveRow, enterCol);
     }
 
-    if (Math.abs(T[p1Row][totalCols - 1]) > 1e-3) {
+    if (Math.abs(T[p1Row][totalCols - 1]) > EPSILON) {
       return { feasible: false, reason: "Infeasible constraints (Phase 1 objective > 0)" };
     }
   }
@@ -247,7 +248,7 @@ function solveSimplexLP(c, A, b) {
     const bCol = basis[i];
     if (bCol < n) {
       const factor = T[0][bCol];
-      if (Math.abs(factor) > 1e-12) {
+      if (Math.abs(factor) > EPSILON) {
         for (let j = 0; j < totalCols; j++) T[0][j] -= factor * T[i + 1][j];
       }
     }
@@ -256,7 +257,7 @@ function solveSimplexLP(c, A, b) {
   let iter = 0;
   while (iter++ < 6000) {
     let enterCol = -1;
-    let minVal = -1e-8;
+    let minVal = -EPSILON;
     for (let j = 0; j < n + numSlack; j++) {
       if (T[0][j] < minVal) {
         minVal = T[0][j];
@@ -269,9 +270,9 @@ function solveSimplexLP(c, A, b) {
     let minRatio = Infinity;
     for (let i = 0; i < m; i++) {
       const row = i + 1;
-      if (T[row][enterCol] > 1e-8) {
+      if (T[row][enterCol] > EPSILON) {
         const ratio = T[row][totalCols - 1] / T[row][enterCol];
-        if (ratio < minRatio - 1e-11) {
+        if (ratio < minRatio - EPSILON) {
           minRatio = ratio;
           leaveRow = row;
         }

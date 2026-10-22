@@ -3,6 +3,7 @@ import {
   LayoutDashboard, Sun, Droplets, BatteryCharging,
   BarChart3, Zap, Database, Radio, Cpu, ShieldCheck, Sliders,
 } from "lucide-react";
+import { getIndustrialStatusClasses } from "../utils/statusStyles";
 
 const ALL_NAV_LINKS = [
   { to: "/",                label: "Dashboard",        icon: <LayoutDashboard size={18} />, end: true,   roles: ["ADMIN","OPERATOR","VIEWER"] },
@@ -20,21 +21,21 @@ export default function Sidebar({ metaInfo, userRole }) {
   const navLinks = ALL_NAV_LINKS.filter((l) => l.roles.includes(effectiveRole));
 
   return (
-    <aside className="hidden md:flex w-64 flex-col shrink-0" style={{ background: "#1e1a14", borderRight: "1px solid #3a2a1a" }}>
+    <aside className="hidden md:flex w-64 flex-col shrink-0" style={{ background: "#ffffff", borderRight: "1px solid #e8dfd5" }}>
       {/* Logo */}
-      <div className="h-20 flex items-center px-6" style={{ borderBottom: "1px solid #3a2a1a" }}>
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg, #8b5230, #c4874e)" }}>
+      <div className="h-20 flex items-center px-6" style={{ borderBottom: "1px solid #e8dfd5" }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md" style={{ background: "linear-gradient(135deg, #aa6e40, #c68953)" }}>
           <Droplets className="text-white" size={22} />
         </div>
         <div className="ml-3">
-          <h1 className="font-bold text-base leading-tight" style={{ color: "#f5e9d8" }}>Green H₂</h1>
-          <p className="text-xs" style={{ color: "#8a8070" }}>Energy Platform</p>
+          <h1 className="font-bold text-base leading-tight" style={{ color: "#2d241d" }}>Green H₂</h1>
+          <p className="text-xs font-medium" style={{ color: "#7a6c5f" }}>Energy Platform</p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
-        <p className="text-[10px] font-semibold uppercase tracking-widest px-3 pb-2 pt-1" style={{ color: "#655e50" }}>Navigation</p>
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <p className="text-[10px] font-bold uppercase tracking-widest px-3 pb-2 pt-1" style={{ color: "#8c7e6f" }}>Navigation</p>
         {navLinks.map((item) => (
           <NavLink
             key={item.to}
@@ -44,33 +45,33 @@ export default function Sidebar({ metaInfo, userRole }) {
               flex items-center justify-between
               px-3 py-2.5 rounded-xl transition-all duration-150 group
               ${isActive
-                ? "font-semibold"
+                ? "font-bold shadow-2xs"
                 : "font-medium"}
             `}
             style={({ isActive }) => ({
-              background: isActive ? "rgba(168,105,58,0.25)" : "transparent",
-              color: isActive ? "#eacfb0" : "#8a8070",
+              background: isActive ? "rgba(170, 110, 64, 0.12)" : "transparent",
+              color: isActive ? "#8b4e23" : "#635548",
             })}
             onMouseEnter={e => {
               if (!e.currentTarget.classList.contains("active-nav")) {
-                e.currentTarget.style.background = "rgba(168,105,58,0.12)";
-                e.currentTarget.style.color = "#d9ae82";
+                e.currentTarget.style.background = "#f7f2ea";
+                e.currentTarget.style.color = "#2d241d";
               }
             }}
-            onMouseLeave={e => {
-              if (!e.currentTarget.dataset.active) {
-                // NavLink handles its own active detection
-              }
+            onMouseLeave={(e) => {
+              const isActive = e.currentTarget.getAttribute("aria-current") === "page";
+              e.currentTarget.style.background = isActive ? "rgba(170, 110, 64, 0.12)" : "transparent";
+              e.currentTarget.style.color = isActive ? "#8b4e23" : "#635548";
             }}
           >
             {({ isActive }) => (
               <>
                 <div className="flex items-center gap-3">
-                  <span style={{ color: isActive ? "#c4874e" : "#655e50" }}>{item.icon}</span>
+                  <span style={{ color: isActive ? "#aa6e40" : "#8c7e6f" }}>{item.icon}</span>
                   <span className="text-sm">{item.label}</span>
                 </div>
                 {item.badge && (
-                  <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(168,105,58,0.3)", color: "#d9ae82" }}>
+                  <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(170, 110, 64, 0.16)", color: "#8b4e23" }}>
                     {item.badge}
                   </span>
                 )}
@@ -81,48 +82,44 @@ export default function Sidebar({ metaInfo, userRole }) {
       </nav>
 
       {/* Sidebar Bottom — Status */}
-      <div className="p-4 space-y-3" style={{ borderTop: "1px solid #3a2a1a" }}>
-        <div className="p-3 rounded-xl border text-xs space-y-2" style={{ background: "#2a1f14", borderColor: "#3a2a1a" }}>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 font-medium" style={{ color: "#8a8070" }}>
-              <Database size={12} /> Database
+      <div className="p-4 space-y-3" style={{ borderTop: "1px solid #e8dfd5" }}>
+        <div className="p-3 rounded-xl border text-xs space-y-2" style={{ background: "#fbf8f4", borderColor: "#e8dfd5" }}>
+          <div className="space-y-1.5">
+            <span className="flex items-center gap-1.5 font-medium" style={{ color: "#635548" }}>
+              <Database size={12} className="text-[#8c7e6f]" /> Database
             </span>
-            <span className={`px-2 py-0.5 rounded-full font-semibold text-[9px] uppercase`}
-              style={{
-                background: metaInfo?.dbStatus === "connected" ? "rgba(74,140,58,0.2)" : "rgba(168,105,58,0.2)",
-                color: metaInfo?.dbStatus === "connected" ? "#7ec862" : "#d9ae82",
-              }}>
-              {metaInfo?.dbStatus ?? "disconnected"}
+            <span className={`block px-2 py-1 rounded-md font-bold text-[9px] border text-center leading-relaxed ${getIndustrialStatusClasses(metaInfo?.dbStatus === "connected" ? "connected" : "disconnected")}`}>
+              {metaInfo?.dbStatus === "connected"
+                ? "MongoDB Connected"
+                : "Storage Engine: In-Memory (Demo)"}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 font-medium" style={{ color: "#8a8070" }}>
-              <Radio size={12} /> Data Source
+            <span className="flex items-center gap-1.5 font-medium" style={{ color: "#635548" }}>
+              <Radio size={12} className="text-[#8c7e6f]" /> Data Source
             </span>
-            <span className="px-2 py-0.5 rounded-full font-semibold text-[9px] uppercase"
-              style={{ background: "rgba(168,105,58,0.2)", color: "#d9ae82" }}>
+            <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase border ${getIndustrialStatusClasses(metaInfo?.dataSource ?? "simulated")}`}>
               {metaInfo?.dataSource ?? "simulated"}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 font-medium" style={{ color: "#8a8070" }}>
-              <Cpu size={12} /> Optimizer
+            <span className="flex items-center gap-1.5 font-medium" style={{ color: "#635548" }}>
+              <Cpu size={12} className="text-[#8c7e6f]" /> Optimizer
             </span>
-            <span className="px-2 py-0.5 rounded-full font-semibold text-[9px] uppercase"
-              style={{ background: "rgba(196,135,78,0.2)", color: "#c4874e" }}>
+            <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase border ${getIndustrialStatusClasses("active")}`}>
               24h LP Active
             </span>
           </div>
         </div>
 
-        <div className="p-3 rounded-xl border" style={{ background: "rgba(139,82,48,0.15)", borderColor: "rgba(139,82,48,0.3)" }}>
+        <div className="p-3 rounded-xl border bg-emerald-50 border-emerald-200">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full status-dot" style={{ background: "#c4874e" }} />
-            <span className="text-sm font-medium" style={{ color: "#d9ae82" }}>System Online</span>
+            <div className="w-2 h-2 rounded-full status-dot bg-emerald-600" />
+            <span className="text-xs font-bold text-emerald-800">System Online</span>
           </div>
-          <p className="text-xs mt-1" style={{ color: "#655e50" }}>
+          <p className="text-[11px] mt-1 font-medium" style={{ color: "#7a6c5f" }}>
             {metaInfo?.dbStatus === "connected" ? "MongoDB connected" : "Demo mode active"}
           </p>
         </div>

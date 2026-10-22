@@ -1,32 +1,32 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
-
-export const AuthContext = createContext(null);
+import { AuthContext } from './authContext.js';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchCurrentUser = useCallback(async () => {
-    try {
-      const res = await api.get('/api/auth/me');
-      if (res.data?.success && res.data?.data) {
-        setUser(res.data.data);
-      } else {
-        setUser(null);
-      }
-    } catch (err) {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchCurrentUser();
-  }, [fetchCurrentUser]);
+    let isCurrent = true;
+    api.get('/api/auth/me')
+      .then((res) => {
+        if (isCurrent) {
+          setUser(res.data?.success && res.data?.data ? res.data.data : null);
+        }
+      })
+      .catch(() => {
+        if (isCurrent) setUser(null);
+      })
+      .finally(() => {
+        if (isCurrent) setLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   const login = async (email, password) => {
     setLoading(true);
