@@ -685,6 +685,16 @@ npm install
 npm run dev        # → http://localhost:5173
 ```
 
+### Deploy free on Render
+
+The root `render.yaml` deploys the frontend and API together as one free web service. The UI and API share an origin, and Render generates a `JWT_SECRET` automatically. With no `MONGO_URI` configured, the server uses simulated demo data.
+
+1. Push this repository to GitHub.
+2. In Render, choose **New → Blueprint**, connect the repository, and apply the `render.yaml` configuration.
+3. Open the service URL shown by Render after the first deploy completes.
+
+Render's free web services may spin down when idle, so the first request after a quiet period can take a little longer. Demo mode is public and uses the built-in demo accounts; do not use it for private data or production authentication.
+
 ---
 
 ## Scenario Presets

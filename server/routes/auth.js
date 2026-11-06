@@ -77,17 +77,20 @@ router.post('/login', loginLimiter, async (req, res) => {
   if (dbConnected) {
     try {
       const user = await User.findOne({ email: email.toLowerCase().trim() });
+      const isProd = process.env.NODE_ENV === 'production';
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'strict' : 'lax',
+        maxAge: 8 * 60 * 60 * 1000,
+      };
+
       if (user && user.isActive) {
         const passwordMatch = user.comparePassword(password);
         if (passwordMatch) {
           const payload = { id: user._id, role: user.role, name: user.name, email: user.email };
           const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-          res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 8 * 60 * 60 * 1000,
-          });
+          res.cookie('token', token, cookieOptions);
 
           // Record audit log
           const { logAuditAction } = require('../services/auditService');
@@ -101,6 +104,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 
           return res.json({
             success: true,
+            token,
             data: { id: user._id, name: user.name, email: user.email, role: user.role },
           });
         }
@@ -113,14 +117,16 @@ router.post('/login', loginLimiter, async (req, res) => {
   // 2) Fallback to demo credentials (allows seamless offline/demo access)
   const demoUser = matchDemoUser(email, password);
   if (demoUser) {
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'strict' : 'lax',
+      maxAge: 8 * 60 * 60 * 1000,
+    };
     const payload = { id: demoUser.id, role: demoUser.role, name: demoUser.name, email: email.toLowerCase().trim() };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 8 * 60 * 60 * 1000,
-    });
+    res.cookie('token', token, cookieOptions);
 
     // Record audit log
     const { logAuditAction } = require('../services/auditService');
@@ -134,6 +140,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     return res.json({
       success: true,
+      token,
       data: { id: demoUser.id, name: demoUser.name, email: email.toLowerCase().trim(), role: demoUser.role },
       meta: { demoMode: true, dbConnected },
     });
@@ -157,7 +164,12 @@ router.get('/me', verifyToken, (req, res) => {
  * POST /api/auth/logout
  */
 router.post('/logout', (req, res) => {
-  res.clearCookie('token', { httpOnly: true, sameSite: 'strict' });
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'strict' : 'lax',
+  });
   res.json({ success: true, message: 'Logged out successfully.' });
 });
 

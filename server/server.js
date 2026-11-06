@@ -2,6 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const { verifyToken, authorizeRoles } = require('./middleware/auth');
@@ -17,7 +19,24 @@ const {
 const app = express();
 
 // ================= MIDDLEWARE =================
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173').split(',').map(s => s.trim());
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:4173',
+  'http://127.0.0.1:4173',
+];
+const configuredOrigins = (process.env.FRONTEND_ORIGIN || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+const renderExternalOrigin = process.env.RENDER_EXTERNAL_URL;
+const allowedOrigins = [...new Set([
+  ...defaultOrigins,
+  ...configuredOrigins,
+  ...(renderExternalOrigin ? [renderExternalOrigin] : []),
+])];
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
@@ -197,7 +216,7 @@ function buildEnergyForecastPayload() {
 // ================= ROUTES =================
 
 // 1. Health-check endpoint
-app.get("/", (req, res) => {
+function sendHealthCheck(req, res) {
   res.json({
     message: "Green Hydrogen Platform API is running!",
     status: "success",
@@ -206,7 +225,8 @@ app.get("/", (req, res) => {
     environment: process.env.NODE_ENV || "development",
     phase: "Phase 2: Optimization Engine Active",
   });
-});
+}
+app.get("/api/health", sendHealthCheck);
 // Authentication routes
 const authRouter = require('./routes/auth');
 app.use('/api/auth', authRouter);
@@ -219,11 +239,15 @@ app.use('/api/auth', authRouter);
  */
 app.use((req, res, next) => {
   // Allow health‑check
-  if (req.path === '/' && req.method === 'GET') {
+  if (req.path === '/api/health' && req.method === 'GET') {
     return next();
   }
   // Allow auth routes (login, me, logout)
   if (req.path.startsWith('/api/auth')) {
+    return next();
+  }
+  // Frontend pages and assets are served by this process in production.
+  if (!req.path.startsWith('/api/')) {
     return next();
   }
   // All other routes require a valid JWT
@@ -649,6 +673,22 @@ app.get("/api/optimization/history", async (req, res) => {
   }
 });
 
+// Serve the built frontend when deployed as a single Render service.
+const clientBuildPath = path.join(__dirname, "../client/dist");
+const clientIndexPath = path.join(clientBuildPath, "index.html");
+app.use(express.static(clientBuildPath));
+app.use((req, res, next) => {
+  if (req.method === "GET" && !req.path.startsWith("/api/")) {
+    if (fs.existsSync(clientIndexPath)) {
+      return res.sendFile(clientIndexPath, (error) => {
+        if (error) next(error);
+      });
+    }
+    if (req.path === "/") return sendHealthCheck(req, res);
+  }
+  next();
+});
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({
@@ -672,7 +712,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Green Hydrogen Platform Server running on http://localhost:${PORT}`);
-  console.log(`📡 Health-check:       http://localhost:${PORT}/`);
+  console.log(`📡 Health-check:       http://localhost:${PORT}/api/health`);
   console.log(`📊 Metrics API:        http://localhost:${PORT}/api/metrics`);
   console.log(`⚡ Energy API:         http://localhost:${PORT}/api/energy`);
   console.log(`🔋 Storage API:        http://localhost:${PORT}/api/storage`);

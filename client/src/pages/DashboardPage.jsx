@@ -35,12 +35,22 @@ export default function DashboardPage({
               Telemetry Connection Interrupted
             </h3>
             <p className="text-xs text-red-700 mt-1 leading-relaxed">{error}</p>
-            <button
-              onClick={onRefresh}
-              className="mt-3 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer"
-            >
-              Retry Connection
-            </button>
+            <div className="mt-3 flex items-center gap-2.5">
+              <button
+                onClick={onRefresh}
+                className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer"
+              >
+                Retry Connection
+              </button>
+              {error.toLowerCase().includes("auth") && (
+                <Link
+                  to="/login"
+                  className="px-3.5 py-1.5 bg-white hover:bg-red-50 border border-red-300 text-red-700 text-xs font-semibold rounded-xl transition cursor-pointer"
+                >
+                  Log In Again
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

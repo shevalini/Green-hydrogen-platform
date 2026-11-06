@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Sun, Droplets, BatteryCharging,
   BarChart3, Zap, Database, Radio, Cpu, ShieldCheck, Sliders,
@@ -21,9 +21,9 @@ export default function Sidebar({ metaInfo, userRole }) {
   const navLinks = ALL_NAV_LINKS.filter((l) => l.roles.includes(effectiveRole));
 
   return (
-    <aside className="hidden md:flex w-64 flex-col shrink-0" style={{ background: "#ffffff", borderRight: "1px solid #e8dfd5" }}>
+    <aside className="hidden md:flex w-64 flex-col shrink-0" style={{ background: "#faf7f2", borderRight: "1px solid #e8dfd5" }}>
       {/* Logo */}
-      <div className="h-20 flex items-center px-6" style={{ borderBottom: "1px solid #e8dfd5" }}>
+      <div className="h-20 flex items-center px-6" style={{ background: "#fdfcf9", borderBottom: "1px solid #e8dfd5" }}>
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md" style={{ background: "linear-gradient(135deg, #aa6e40, #c68953)" }}>
           <Droplets className="text-white" size={22} />
         </div>
@@ -46,23 +46,12 @@ export default function Sidebar({ metaInfo, userRole }) {
               px-3 py-2.5 rounded-xl transition-all duration-150 group
               ${isActive
                 ? "font-bold shadow-2xs"
-                : "font-medium"}
+                : "font-medium hover:bg-[#f5eee4]"}
             `}
             style={({ isActive }) => ({
-              background: isActive ? "rgba(170, 110, 64, 0.12)" : "transparent",
-              color: isActive ? "#8b4e23" : "#635548",
+              background: isActive ? "rgba(170, 110, 64, 0.12)" : undefined,
+              color: isActive ? "#8b4e23" : undefined,
             })}
-            onMouseEnter={e => {
-              if (!e.currentTarget.classList.contains("active-nav")) {
-                e.currentTarget.style.background = "#f7f2ea";
-                e.currentTarget.style.color = "#2d241d";
-              }
-            }}
-            onMouseLeave={(e) => {
-              const isActive = e.currentTarget.getAttribute("aria-current") === "page";
-              e.currentTarget.style.background = isActive ? "rgba(170, 110, 64, 0.12)" : "transparent";
-              e.currentTarget.style.color = isActive ? "#8b4e23" : "#635548";
-            }}
           >
             {({ isActive }) => (
               <>
@@ -82,8 +71,8 @@ export default function Sidebar({ metaInfo, userRole }) {
       </nav>
 
       {/* Sidebar Bottom — Status */}
-      <div className="p-4 space-y-3" style={{ borderTop: "1px solid #e8dfd5" }}>
-        <div className="p-3 rounded-xl border text-xs space-y-2" style={{ background: "#fbf8f4", borderColor: "#e8dfd5" }}>
+      <div className="p-4 space-y-3" style={{ background: "#fdfcf9", borderTop: "1px solid #e8dfd5" }}>
+      <div className="p-3 rounded-xl border text-xs space-y-2" style={{ background: "#ffffff", borderColor: "#e8dfd5" }}>
           <div className="space-y-1.5">
             <span className="flex items-center gap-1.5 font-medium" style={{ color: "#635548" }}>
               <Database size={12} className="text-[#8c7e6f]" /> Database
@@ -114,10 +103,10 @@ export default function Sidebar({ metaInfo, userRole }) {
           </div>
         </div>
 
-        <div className="p-3 rounded-xl border bg-emerald-50 border-emerald-200">
+        <div className="p-3 rounded-xl border" style={{ background: "rgba(74, 140, 58, 0.08)", borderColor: "rgba(74, 140, 58, 0.22)" }}>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full status-dot bg-emerald-600" />
-            <span className="text-xs font-bold text-emerald-800">System Online</span>
+            <div className="w-2 h-2 rounded-full status-dot" style={{ background: "#4a8c3a" }} />
+            <span className="text-xs font-bold" style={{ color: "#2e7d32" }}>System Online</span>
           </div>
           <p className="text-[11px] mt-1 font-medium" style={{ color: "#7a6c5f" }}>
             {metaInfo?.dbStatus === "connected" ? "MongoDB connected" : "Demo mode active"}

@@ -13,7 +13,16 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
  * Attaches req.user (id, role, name, email, isActive) if valid.
  */
 function verifyToken(req, res, next) {
-  const token = req.cookies && req.cookies.token;
+  let token = req.cookies && req.cookies.token;
+
+  // Support Authorization: Bearer <token> in addition to HttpOnly cookie
+  if (!token && req.headers.authorization) {
+    const parts = req.headers.authorization.split(' ');
+    if (parts.length === 2 && /^Bearer$/i.test(parts[0])) {
+      token = parts[1];
+    }
+  }
+
   if (!token) {
     return res.status(401).json({ success: false, error: 'Authentication required' });
   }
@@ -26,9 +35,10 @@ function verifyToken(req, res, next) {
   }
 
   const dbConnected = mongoose.connection.readyState === 1;
+  const isDemoUser = payload.id && String(payload.id).startsWith('demo-');
 
-  if (!dbConnected) {
-    // Fallback: trust JWT payload (DB cannot confirm isActive/role freshness)
+  if (!dbConnected || isDemoUser) {
+    // Fallback: trust JWT payload (DB cannot confirm isActive/role freshness or virtual demo user)
     req.user = {
       id: payload.id,
       role: payload.role || 'VIEWER',

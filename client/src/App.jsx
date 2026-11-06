@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useContext } from "react";
 import { Routes, Route, useLocation, Navigate, Link } from "react-router-dom";
 import { ShieldAlert } from "lucide-react";
 import api from "./api/axios";
+import { createDemoTelemetry } from "./data/demoTelemetry.js";
 
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -197,6 +198,23 @@ function App() {
   // Fetch telemetry — only runs when user is authenticated
   const fetchDashboardData = useCallback(async () => {
     if (!user) return;
+    if (user.demoMode) {
+      const demoTelemetry = createDemoTelemetry();
+      setMetrics(demoTelemetry.metrics);
+      setEnergyData(demoTelemetry.energyData);
+      setStorageData(demoTelemetry.storageData);
+      setMetaInfo({
+        isSimulated: true,
+        dataSource: "simulated",
+        dbStatus: "disconnected",
+        lastUpdated: new Date().toISOString(),
+      });
+      setError(null);
+      setLoading(false);
+      setIsRefreshing(false);
+      return;
+    }
+
     try {
       setError(null);
       const [metricsRes, energyRes, storageRes] = await Promise.all([
@@ -263,7 +281,7 @@ function App() {
     Promise.resolve().then(() => {
       if (!isCurrent) return;
       fetchDashboardData();
-      if (user.role !== 'VIEWER') {
+      if (!user.demoMode && user.role !== 'VIEWER') {
         triggerOptimization("standard");
       }
     });
@@ -275,7 +293,7 @@ function App() {
   const handleManualRefresh = () => {
     setIsRefreshing(true);
     fetchDashboardData();
-    if (user?.role !== 'VIEWER') {
+    if (!user?.demoMode && user?.role !== 'VIEWER') {
       triggerOptimization(selectedPreset);
     }
   };

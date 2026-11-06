@@ -187,12 +187,13 @@ export default function LoginPage() {
             </div>
             <div className="grid grid-cols-3 gap-2.5">
               {DEMO_PRESETS.map((p) => {
-                const isSelected = email === p.email;
+                const isSelected = email === p.email && password === p.pass;
                 return (
                   <button
                     key={p.role}
                     type="button"
                     onClick={() => selectDemoRole(p)}
+                    aria-pressed={isSelected}
                     className={`p-3 rounded-2xl text-left border transition-all duration-200 cursor-pointer ${
                       isSelected
                         ? "border-[#aa6e40] bg-[#fffaf5] shadow-xs ring-2 ring-[#aa6e40]/20"
